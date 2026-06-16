@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EqualWork - Modern Ketenagakerjaan & Gender Dashboard</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="EqualWork adalah dashboard analitik ketenagakerjaan terlengkap di Indonesia yang mengulas transparansi upah minimum, kabupaten/kota (UMK), perbandingan upah ASEAN, penegakan hak pekerja wanita, dan pelaporan pelanggaran.">
+  <meta name="keywords" content="EqualWork, kesetaraan gender, upah minimum, UMK 2024, UMP, hukum ketenagakerjaan, hak pekerja wanita, pengaduan kerja, simulator gaji">
+  <meta name="author" content="EqualWork Indonesia">
+  
+  <!-- FontAwesome Icons & Local Dashboard Styling -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/styles.css?v=1.3.0">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#beranda" class="logo" id="navLogo">
+        <div class="logo-icon"></div>
+        EqualWork
+      </a>
+      
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="#beranda" class="nav-link active">Beranda</a></li>
+        <li><a href="#peraturan" class="nav-link">Peraturan & Hukum</a></li>
+        <li><a href="#upah" class="nav-link">Upah Minimum</a></li>
+        <li><a href="#hak-wanita" class="nav-link">Hak & Penilaian Kerja</a></li>
+        <li><a href="#insight" class="nav-link">Gender Equality Insight</a></li>
+        <li><a href="#pengaduan" class="nav-link">Kontak Instansi</a></li>
+        <li><a href="#artikel" class="nav-link">Artikel</a></li>
+        <li class="mobile-only" style="margin-top: 1.5rem; display: none;"><button class="btn btn-primary" style="width: 80vw;" onclick="openModal('loginModal')">Masuk</button></li>
+      </ul>
+      
+      <div class="nav-actions">
+        <button class="btn btn-primary" id="loginBtn">Masuk</button>
+      </div>
+
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Dashboard SPA Container -->
+  <main class="dashboard-main">
+    
+    <!-- BERANDA PANEL (Home) -->
+    <div class="dashboard-panel active" id="panel-beranda">
+      <!-- Hero Section -->
+      <section class="hero" id="beranda">
+        <div class="container">
+          <div class="grid-2">
+            <div class="hero-content">
+              <span class="badge badge-primary hero-subtitle">
+                <i class="fas fa-chart-line"></i> Dashboard Transparansi Kerja
+              </span>
+              <h1 class="hero-title">
+                Transparansi Upah,<br>
+                <span>Kesetaraan Gender & Hak Pekerja</span><br>
+                yang Terlindungi.
+              </h1>
+              <p class="hero-desc">
+                EqualWork menyajikan dashboard analitik modern untuk melacak pemenuhan hak upah minimum nasional, mengevaluasi perlindungan hak buruh perempuan, dan mendiskusikan keadilan iklim industri Indonesia.
+              </p>
+              <div class="hero-btns">
+                <a href="#upah" class="btn btn-primary">Analisis Upah Minimum <i class="fas fa-arrow-right"></i></a>
+                <a href="#hak-wanita" class="btn btn-secondary">Audit Kepatuhan Kantor</a>
+              </div>
+            </div>
+            
+            <div class="hero-illustration">
+              <!-- Character Illustration representing a laborer/worker -->
+              <img src="assets/images/laborer_character.png?v=1.2.0" alt="EqualWork Laborer Character" style="border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); max-width: 100%; height: auto; object-fit: cover; border: 1px solid var(--border-focus); animation: float-subtle 6s infinite alternate ease-in-out;">
+            </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Stats Bar -->
+  <section class="stats-bar">
+    <div class="container">
+      <div class="stats-container">
+        
+        <div class="stats-card">
+          <div class="stats-icon-wrapper purple">
+            <i class="fas fa-file-contract"></i>
+          </div>
+          <div>
+            <div class="stats-num" data-target="50" data-suffix="+">0</div>
+            <div class="stats-txt">Aturan & Regulasi</div>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <div class="stats-icon-wrapper blue">
+            <i class="fas fa-map-marked-alt"></i>
+          </div>
+          <div>
+            <div class="stats-num" data-target="38" data-suffix="">0</div>
+            <div class="stats-txt">Provinsi Terdaftar</div>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <div class="stats-icon-wrapper pink">
+            <i class="fas fa-venus-mars"></i>
+          </div>
+          <div>
+            <div class="stats-num" data-target="5" data-suffix="">0</div>
+            <div class="stats-txt">Hak Vital Wanita</div>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <div class="stats-icon-wrapper indigo">
+            <i class="fas fa-headset"></i>
+          </div>
+          <div>
+            <div class="stats-num" data-target="24" data-suffix="/7">0</div>
+            <div class="stats-txt">Layanan Bantuan</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <!-- Footer is embedded inside Home panel for dashboard aesthetics -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        
+        <div class="footer-info">
+          <a href="#beranda" class="logo" style="margin-bottom: 1rem;">
+            <div class="logo-icon"></div>
+            EqualWork
+          </a>
+          <p>Platform terintegrasi pendukung transparansi kerja, pemenuhan hak upah minimum, keselarasan gender, dan ruang aduan kerja yang aman serta berkeadilan di Indonesia.</p>
+          <div class="social-links">
+            <a href="#" class="social-btn" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-btn" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-btn" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-btn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          </div>
+        </div>
+
+        <div>
+          <h4>Navigasi</h4>
+          <ul class="footer-links">
+            <li><a href="#beranda">Beranda</a></li>
+            <li><a href="#peraturan">Peraturan</a></li>
+            <li><a href="#upah">Upah Minimum</a></li>
+            <li><a href="#hak-wanita">Hak & Penilaian Kerja</a></li>
+            <li><a href="#insight">Gender Insight</a></li>
+            <li><a href="#pengaduan">Kontak Instansi</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Sumber Daya</h4>
+          <ul class="footer-links">
+            <li><a href="#peraturan">Undang-Undang</a></li>
+            <li><a href="#peraturan">Peraturan Pemerintah</a></li>
+            <li><a href="#artikel">Buku Panduan</a></li>
+            <li><a href="#" onclick="showToast('Seksi FAQ sedang diperbarui.', 'info'); return false;">FAQ Kerja</a></li>
+            <li><a href="#" onclick="showToast('Unduhan APK EqualWork segera hadir!', 'info'); return false;">Download Aplikasi</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Bantuan</h4>
+          <ul class="footer-links">
+            <li><a href="#" onclick="showToast('Tentang Kami', 'info'); return false;">Tentang Kami</a></li>
+            <li><a href="#" onclick="showToast('Kebijakan Privasi', 'info'); return false;">Kebijakan Privasi</a></li>
+            <li><a href="#" onclick="showToast('Syarat & Ketentuan', 'info'); return false;">Syarat & Ketentuan</a></li>
+            <li><a href="#pengaduan">Direktori Lembaga</a></li>
+            <li><a href="#" id="footerAdminLink" style="color:var(--primary); font-weight:700;"><i class="fas fa-user-shield"></i> Portal Admin (Demo)</a></li>
+          </ul>
+        </div>
+
+        <div class="newsletter-box">
+          <h4>Dapatkan Update Terbaru</h4>
+          <p>Berlangganan newsletter kami untuk mendapatkan artikel tips hukum ketenagakerjaan terpopuler setiap bulannya.</p>
+          <form class="newsletter-form" id="newsletterForm">
+            <input type="email" placeholder="Masukkan email Anda" required aria-label="Alamat Email">
+            <button type="submit" class="btn btn-accent">Langganan</button>
+          </form>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 EqualWork Indonesia. Hak Cipta Dilindungi.</p>
+        <p>Mendukung Sustainable Development Goals (SDG) Poin 5 & 8.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- Peraturan & Hukum (Regulation Explorer) Panel -->
+<div class="dashboard-panel" id="panel-peraturan">
+  <section class="section section-bg" id="peraturan">
+    <div class="container">
+      <div class="section-header">
+        <h2>Peraturan & Hukum Ketenagakerjaan</h2>
+        <p>Kumpulan peraturan perundang-undangan lengkap di Indonesia yang mengatur aspek ketenagakerjaan dan kesetaraan gender di dunia kerja secara hukum formal.</p>
+      </div>
+
+      <!-- Filters & Search Tab Bar -->
+      <div class="filter-tabs-container">
+        <button class="tab-btn active" data-tab="semua">Semua</button>
+        <button class="tab-btn" data-tab="ketenagakerjaan">Ketenagakerjaan</button>
+        <button class="tab-btn" data-tab="kesetaraan-gender">Kesetaraan Gender</button>
+        <button class="tab-btn" data-tab="upah">Upah</button>
+        <button class="tab-btn" data-tab="jam-kerja">Jam Kerja</button>
+      </div>
+
+      <div class="search-filter-row">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" id="regSearch" placeholder="Cari nama undang-undang atau kata kunci (misal: 'PHK', 'cuti')...">
+        </div>
+      </div>
+
+      <div class="empty-state" id="regEmptyState">
+        <i class="fas fa-folder-open"></i>
+        <h3>Peraturan Tidak Ditemukan</h3>
+        <p>Silakan gunakan kata kunci lain atau pilih tab kategori yang sesuai.</p>
+      </div>
+
+      <div class="regulations-grid" id="regulationsGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="text-center">
+        <button class="btn btn-secondary" id="lihatSemuaPeraturanBtn">Lihat Semua Peraturan</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Upah Minimum & Comparison Hub Section Panel -->
+<div class="dashboard-panel" id="panel-upah">
+  <section class="section wages-section" id="upah">
+    <div class="container">
+      <div class="section-header">
+        <h2>Pusat Perbandingan Upah Minimum</h2>
+        <p>Bandingkan tingkat upah minimum provinsi (UMP), upah minimum kabupaten/kota (UMK), standar regional ASEAN, serta bandingkan dengan gaji riil Anda.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- Interactive Indonesia map -->
+        <div class="map-card">
+          <div class="map-title-row">
+            <h3>Peta Kepatuhan Upah Indonesia</h3>
+            <p>Pilih wilayah pulau untuk menampilkan data UMP regional dan kota.</p>
+          </div>
+          
+          <div class="map-wrapper">
+            <div id="mapTooltip" class="map-tooltip"></div>
+            <svg viewBox="0 0 420 220" class="map-indonesia" xmlns="http://www.w3.org/2000/svg">
+              <g stroke="rgba(99,102,241,0.05)" stroke-width="0.5">
+                <line x1="20" y1="0" x2="20" y2="220" />
+                <line x1="80" y1="0" x2="80" y2="220" />
+                <line x1="140" y1="0" x2="140" y2="220" />
+                <line x1="200" y1="0" x2="200" y2="220" />
+                <line x1="260" y1="0" x2="260" y2="220" />
+                <line x1="320" y1="0" x2="320" y2="220" />
+                <line x1="0" y1="40" x2="420" y2="40" />
+                <line x1="0" y1="100" x2="420" y2="100" />
+                <line x1="0" y1="160" x2="420" y2="160" />
+              </g>
+
+              <!-- Sumatra -->
+              <path id="sumatra" data-name="Sumatera" class="map-region map-warn" 
+                    d="M 40,40 C 30,35 20,50 25,65 C 30,80 45,95 60,110 C 70,120 80,130 90,135 C 100,140 105,125 95,115 C 85,105 75,85 65,70 C 55,55 45,45 40,40 Z" />
+
+              <!-- Java -->
+              <path id="java" data-name="Jawa" class="map-region map-danger" 
+                    d="M 105,155 C 120,157 135,155 150,157 C 165,159 180,160 195,163 C 205,165 205,170 190,169 C 175,167 160,165 145,163 C 130,161 115,161 105,155 Z" />
+
+              <!-- Kalimantan -->
+              <path id="kalimantan" data-name="Kalimantan" class="map-region map-warn" 
+                    d="M 130,85 C 125,70 135,55 150,45 C 165,40 185,50 195,60 C 205,70 200,90 195,100 C 190,110 175,120 160,115 C 145,110 135,100 130,85 Z" />
+
+              <!-- Sulawesi -->
+              <path id="sulawesi" data-name="Sulawesi" class="map-region map-warn" 
+                    d="M 215,90 C 210,80 215,70 225,70 C 235,70 230,85 235,90 C 245,85 255,80 250,70 C 245,65 240,70 235,60 C 230,50 240,50 245,55 C 255,65 250,75 245,85 C 240,90 238,100 238,105 C 238,110 245,110 250,115 C 255,120 245,125 238,120 C 232,115 228,110 225,105 C 220,100 210,105 205,107 C 200,109 205,100 215,90 Z" />
+
+              <!-- Bali & Nusa Tenggara -->
+              <path id="nusatenggara" data-name="Bali & Nusa Tenggara" class="map-region map-warn" 
+                    d="M 205,170 C 215,171 225,172 235,173 C 245,174 255,175 265,175 C 265,178 255,177 245,176 C 235,175 225,174 215,173 C 205,172 205,170 205,170 Z" />
+
+              <!-- Maluku Islands -->
+              <g id="maluku" data-name="Maluku" class="map-region map-good">
+                <circle cx="265" cy="85" r="4" />
+                <circle cx="280" cy="105" r="5" />
+                <circle cx="270" cy="120" r="4" />
+                <circle cx="290" cy="125" r="5" />
+              </g>
+
+              <!-- Papua -->
+              <path id="papua" data-name="Papua" class="map-region map-danger" 
+                    d="M 300,95 C 305,85 315,80 320,90 C 325,95 328,93 335,100 C 340,105 350,107 365,110 C 380,113 385,120 380,135 C 375,150 365,155 350,157 C 335,159 320,157 305,150 C 295,145 290,130 295,115 C 300,100 295,105 300,95 Z" />
+
+              <!-- Warning Markers for Regions with Inequalities -->
+              <!-- Java Marker -->
+              <g class="map-marker" transform="translate(150, 160)" data-region="java" data-tip="Jawa: Ketimpangan UMK Tinggi (Karawang Rp 5.2jt vs Banjarnegara Rp 2jt)">
+                <circle class="marker-pulse" r="8" fill="#EF4444" opacity="0.4" />
+                <circle class="marker-dot" r="4" fill="#EF4444" />
+              </g>
+
+              <!-- Sumatra Marker -->
+              <g class="map-marker" transform="translate(55, 80)" data-region="sumatra" data-tip="Sumatera: Kesenjangan Upah Gender Sektor Perkebunan">
+                <circle class="marker-pulse" r="8" fill="#EF4444" opacity="0.4" />
+                <circle class="marker-dot" r="4" fill="#EF4444" />
+              </g>
+
+              <!-- Kalimantan Marker -->
+              <g class="map-marker" transform="translate(160, 80)" data-region="kalimantan" data-tip="Kalimantan: Kesenjangan Gender & Upah Sektor Kelapa Sawit">
+                <circle class="marker-pulse" r="8" fill="#EF4444" opacity="0.4" />
+                <circle class="marker-dot" r="4" fill="#EF4444" />
+              </g>
+
+              <!-- Sulawesi Marker -->
+              <g class="map-marker" transform="translate(230, 95)" data-region="sulawesi" data-tip="Sulawesi: Ketimpangan Upah Sektor Smelter Tambang vs Pertanian">
+                <circle class="marker-pulse" r="8" fill="#EF4444" opacity="0.4" />
+                <circle class="marker-dot" r="4" fill="#EF4444" />
+              </g>
+
+              <!-- Papua Marker -->
+              <g class="map-marker" transform="translate(340, 125)" data-region="papua" data-tip="Papua: Kesenjangan Akses Lapangan Kerja Formal Wanita">
+                <circle class="marker-pulse" r="8" fill="#EF4444" opacity="0.4" />
+                <circle class="marker-dot" r="4" fill="#EF4444" />
+              </g>
+            </svg>
+          </div>
+
+          <!-- Map Legend -->
+          <div class="map-legend" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem; border-top: 1px solid var(--border-focus); font-size: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <span style="display: flex; align-items: center; gap: 0.25rem;"><span style="width: 10px; height: 10px; border-radius: 2px; background-color: #FEE2E2; border: 1px solid #EF4444; display: inline-block;"></span> Ketimpangan Tinggi (Merah)</span>
+              <span style="display: flex; align-items: center; gap: 0.25rem;"><span style="width: 10px; height: 10px; border-radius: 2px; background-color: #FEF3C7; border: 1px solid #F59E0B; display: inline-block;"></span> Ketimpangan Sedang (Kuning)</span>
+              <span style="display: flex; align-items: center; gap: 0.25rem;"><span style="width: 10px; height: 10px; border-radius: 2px; background-color: #D1FAE5; border: 1px solid #10B981; display: inline-block;"></span> Kepatuhan Baik (Hijau)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.25rem;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #EF4444; display: inline-block; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4); animation: pulse-ring 1.5s infinite;"></span>
+              <span style="font-weight:600; color:var(--text-dark);">Titik Fokus Ketimpangan Kerja</span>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- Wage Comparison Hub Dashboard Card -->
+        <div class="table-card">
+          <!-- Hub Tabs header switchers -->
+          <div class="wage-hub-tabs">
+            <button class="wage-hub-tab-btn active" data-tab="hub-ump">UMP Provinsi</button>
+            <button class="wage-hub-tab-btn" data-tab="hub-umk">UMK Kabupaten/Kota</button>
+            <button class="wage-hub-tab-btn" data-tab="hub-asean">Negara (ASEAN)</button>
+            <button class="wage-hub-tab-btn" data-tab="hub-simulator">Simulator Gaji</button>
+          </div>
+
+          <!-- TAB 1: UMP Provinsi list -->
+          <div class="wage-hub-content active" id="hub-ump">
+            <div class="table-controls">
+              <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="wageSearch" placeholder="Cari UMP provinsi...">
+              </div>
+              <button class="btn btn-secondary reset-filter-btn" id="resetMapFilter">
+                <i class="fas fa-times"></i> Reset
+              </button>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="wage-table">
+                <thead>
+                  <tr>
+                    <th>Provinsi</th>
+                    <th>UMP 2024</th>
+                    <th>Kenaikan</th>
+                    <th>Wilayah</th>
+                  </tr>
+                </thead>
+                <tbody id="wageTableBody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 2: UMK Kabupaten/Kota list -->
+          <div class="wage-hub-content" id="hub-umk">
+            <div class="table-controls">
+              <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="umkSearch" placeholder="Cari UMK kota (misal: 'Karawang', 'Surabaya')...">
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="wage-table">
+                <thead>
+                  <tr>
+                    <th>Kabupaten / Kota</th>
+                    <th>Provinsi</th>
+                    <th>UMK 2024</th>
+                  </tr>
+                </thead>
+                <tbody id="umkTableBody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 3: ASEAN Countries list -->
+          <div class="wage-hub-content" id="hub-asean">
+            <p style="font-size:0.875rem; color:var(--text-light); margin-bottom:1rem;">
+              Perbandingan tingkat upah minimum bulanan rata-rata Indonesia terhadap negara tetangga di Asia Tenggara (ASEAN) tahun 2024 (konversi ke Rupiah).
+            </p>
+            <div class="asean-comp-chart" id="aseanCompChart">
+              <!-- Loaded dynamically -->
+            </div>
+          </div>
+
+          <!-- TAB 4: Factory Salary Simulator -->
+          <div class="wage-hub-content" id="hub-simulator">
+            <div class="factory-simulator-box">
+              <p style="font-size:0.875rem; color:var(--text-light); margin-bottom:0.75rem;">
+                Bandingkan gaji pokok bulanan Anda dengan standar UMP resmi provinsi setempat secara langsung.
+              </p>
+              
+              <div class="sim-input-row">
+                <div class="form-group">
+                  <label for="simProvinsi">Provinsi Penempatan</label>
+                  <select id="simProvinsi" class="form-control">
+                    <option value="">Pilih Provinsi...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="simGajiUser">Gaji Bersih Bulanan Anda (Rp)</label>
+                  <input type="number" id="simGajiUser" class="form-control" placeholder="Contoh: 3500000">
+                </div>
+              </div>
+
+              <div class="sim-input-row">
+                <div class="form-group">
+                  <label for="simCompany">Nama Pabrik/Perusahaan (Opsional)</label>
+                  <input type="text" id="simCompany" class="form-control" placeholder="Contoh: PT Textil Nusantara">
+                </div>
+                <div class="form-group" style="display:flex; align-items:flex-end;">
+                  <button type="button" class="btn btn-primary" id="runSimulatorBtn" style="width:100%;">
+                    <i class="fas fa-calculator"></i> Simulasi & Bandingkan
+                  </button>
+                </div>
+              </div>
+
+              <!-- Result Card -->
+              <div class="sim-result-card" id="simResultCard">
+                <h4 style="color:var(--text-dark); margin-bottom:0.25rem;"><i class="fas fa-poll-h"></i> Hasil Evaluasi Gaji</h4>
+                <div class="sim-result-grid">
+                  <div class="sim-result-item">
+                    <span class="sim-result-label">Gaji Anda</span>
+                    <span class="sim-result-val highlight" id="simResUserSalary">Rp 0</span>
+                  </div>
+                  <div class="sim-result-item">
+                    <span class="sim-result-label">Standar UMP</span>
+                    <span class="sim-result-val" id="simResMinWage">Rp 0</span>
+                  </div>
+                  <div class="sim-result-item" style="grid-column: span 2;">
+                    <span class="sim-result-label">Selisih Kepatuhan</span>
+                    <span class="sim-result-val" id="simResDiff">Rp 0</span>
+                  </div>
+                </div>
+                <div class="sim-status-pill" id="simStatusPill">Standar</div>
+                <p id="simResRecommendation" style="font-size:0.8125rem; color:var(--text-medium); margin-top:0.75rem; border-top:1px solid rgba(124,58,237,0.1); padding-top:0.5rem;"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Printable Table Actions -->
+          <div class="table-actions">
+            <button class="btn btn-primary" id="showWageChartBtn">
+              <i class="fas fa-chart-bar"></i> Lihat Grafik Kenaikan
+            </button>
+            <button class="btn btn-secondary" id="downloadWagePDF">
+              <i class="fas fa-download"></i> Unduh Data UMP (PDF)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Women's Workplace Rights & Compliance Audit Panel -->
+<div class="dashboard-panel" id="panel-hak-wanita">
+  <section class="section section-bg" id="hak-wanita">
+    <div class="container">
+      <div class="section-header">
+        <h2>Hak Pekerja Wanita & Penilaian Mandiri</h2>
+        <p>Banyak hak khusus buruh perempuan diatur hukum namun jarang diterapkan. Evaluasi tingkat kepatuhan perusahaan Anda dengan menandai daftar berikut.</p>
+      </div>
+
+      <div class="rights-grid-layout">
+        <!-- Interactive Rights Checklist -->
+        <div class="rights-card-list">
+          
+          <div class="right-interactive-card" id="rightCardHaid">
+            <div class="right-card-checkbox"><i class="fas fa-check"></i></div>
+            <div class="right-card-info">
+              <span class="right-card-law">UU No. 13/2003 Pasal 81</span>
+              <h3 class="right-card-title">Cuti Haid (Menstrual Leave)</h3>
+              <p class="right-card-desc">Berhak atas istirahat selama 2 hari pertama haid apabila merasakan sakit pada saat masa haid dengan upah tetap dibayar utuh.</p>
+            </div>
+          </div>
+
+          <div class="right-interactive-card" id="rightCardLaktasi">
+            <div class="right-card-checkbox"><i class="fas fa-check"></i></div>
+            <div class="right-card-info">
+              <span class="right-card-law">UU No. 36/2009 Pasal 128</span>
+              <h3 class="right-card-title">Ruang & Waktu Menyusui (Laktasi)</h3>
+              <p class="right-card-desc">Perusahaan wajib menyediakan ruang laktasi tertutup yang higienis serta waktu memadai bagi pekerja perempuan untuk menyusui atau memerah ASI.</p>
+            </div>
+          </div>
+
+          <div class="right-interactive-card" id="rightCardMelahirkan">
+            <div class="right-card-checkbox"><i class="fas fa-check"></i></div>
+            <div class="right-card-info">
+              <span class="right-card-law">UU No. 13/2003 Pasal 82</span>
+              <h3 class="right-card-title">Proteksi Cuti Melahirkan</h3>
+              <p class="right-card-desc">Memperoleh cuti bersalin selama 3 bulan penuh dengan gaji utuh, serta jaminan perlindungan mutlak dari pemecatan (PHK) sepihak karena kehamilan.</p>
+            </div>
+          </div>
+
+          <div class="right-interactive-card" id="rightCardJemputan">
+            <div class="right-card-checkbox"><i class="fas fa-check"></i></div>
+            <div class="right-card-info">
+              <span class="right-card-law">UU No. 13/2003 Pasal 76</span>
+              <h3 class="right-card-title">Fasilitas Kendaraan Jemputan Malam</h3>
+              <p class="right-card-desc">Bagi pekerja perempuan yang bekerja shift malam antara pukul 23.00 s.d 05.00 wajib disediakan angkutan jemputan pulang pergi dan makanan bergizi.</p>
+            </div>
+          </div>
+
+          <div class="right-interactive-card" id="rightCardUpahSetara">
+            <div class="right-card-checkbox"><i class="fas fa-check"></i></div>
+            <div class="right-card-info">
+              <span class="right-card-law">Ratifikasi Konvensi ILO 100</span>
+              <h3 class="right-card-title">Hak Upah Setara (Equal Pay)</h3>
+              <p class="right-card-desc">Kesamaan nominal upah dan hak tunjangan keluarga antara buruh laki-laki dan perempuan untuk bobot serta spesifikasi pekerjaan yang sama.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dynamic Audit results widget dashboard -->
+        <div class="audit-widget-card">
+          <div class="audit-circle-wrapper">
+            <span class="audit-circle-val" id="auditCircleVal">0%</span>
+            <span class="audit-circle-label">Kepatuhan</span>
+          </div>
+          <h3 class="audit-status-title" id="auditStatusTitle">Kepatuhan Buruk</h3>
+          <p class="audit-status-desc" id="auditStatusDesc">Pilih checklist hak yang telah dipatuhi oleh perusahaan Anda untuk memulai kalkulasi kepatuhan gender.</p>
+          <div style="font-size:0.75rem; color:var(--text-light); max-width: 250px;">
+            <i class="fas fa-info-circle"></i> Klik kartu hak pekerja di samping kiri untuk menandai pemenuhan hak di tempat kerja Anda.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Gender Equality Insight Section Panel -->
+<div class="dashboard-panel" id="panel-insight">
+  <section class="section" id="insight">
+    <div class="container">
+      <div class="section-header">
+        <h2>Gender Equality Insight</h2>
+        <p>Data statistik riil dan ulasan mendalam mengenai isu kesetaraan gender serta keberagaman inklusif di lingkungan kerja Indonesia.</p>
+      </div>
+
+      <div class="grid-4">
+        
+        <!-- Card 1: Gender Pay Gap -->
+        <div class="insight-card">
+          <div class="insight-icon-bar">
+            <div class="insight-icon purple">
+              <i class="fas fa-wallet"></i>
+            </div>
+            <div class="insight-stat-box">23%</div>
+          </div>
+          <div class="insight-stat-box large">23%</div>
+          <h3>Gender Pay Gap</h3>
+          <p>Perempuan di Indonesia rata-rata menerima upah 23% lebih rendah dibanding laki-laki pada jabatan yang sama.</p>
+          <div class="insight-visualizer">
+            <div class="insight-progress" style="width: 77%;"></div>
+          </div>
+          <a href="#" class="btn-link">Lihat Selengkapnya <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <!-- Card 2: Women in Leadership -->
+        <div class="insight-card">
+          <div class="insight-icon-bar">
+            <div class="insight-icon pink">
+              <i class="fas fa-crown"></i>
+            </div>
+            <div class="insight-stat-box">27%</div>
+          </div>
+          <div class="insight-stat-box large">27%</div>
+          <h3>Perempuan di Leadership</h3>
+          <p>Hanya 27% posisi manajerial kepemimpinan puncak korporasi yang diisi oleh perwakilan perempuan.</p>
+          <div class="insight-visualizer">
+            <div class="insight-progress" style="width: 27%;"></div>
+          </div>
+          <a href="#" class="btn-link">Lihat Selengkapnya <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <!-- Card 3: Rekrutmen Bias -->
+        <div class="insight-card">
+          <div class="insight-icon-bar">
+            <div class="insight-icon green">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="insight-stat-box">37%</div>
+          </div>
+          <div class="insight-stat-box large">37%</div>
+          <h3>Diskriminasi Rekrutmen</h3>
+          <p>Sebanyak 37% kandidat perempuan pernah ditanyai tentang status pernikahan atau rencana kehamilan.</p>
+          <div class="insight-visualizer">
+            <div class="insight-progress" style="width: 37%;"></div>
+          </div>
+          <a href="#" class="btn-link">Lihat Selengkapnya <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <!-- Card 4: Sexual Harassment -->
+        <div class="insight-card">
+          <div class="insight-icon-bar">
+            <div class="insight-icon orange">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="insight-stat-box">3 dari 5</div>
+          </div>
+          <div class="insight-stat-box large">3/5</div>
+          <h3>Pelecehan Tempat Kerja</h3>
+          <p>3 dari 5 pekerja wanita pernah mengalami salah satu bentuk pelecehan verbal maupun fisik di kantor.</p>
+          <div class="insight-visualizer">
+            <div class="insight-progress" style="width: 60%;"></div>
+          </div>
+          <a href="#" class="btn-link">Lihat Selengkapnya <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Pengaduan & Bantuan Section Panel -->
+<div class="dashboard-panel" id="panel-pengaduan">
+  <section class="section section-bg" id="pengaduan">
+    <div class="container">
+      <div class="section-header">
+        <h2>Direktori Instansi Resmi & Lembaga Bantuan</h2>
+        <p>Hubungi saluran pengaduan resmi pemerintah dan lembaga bantuan hukum berlisensi berikut untuk memproses pelanggaran hak kerja Anda secara formal.</p>
+      </div>
+
+      <div class="grid-3" style="row-gap: 2.5rem; column-gap: 2rem;">
+        
+        <!-- Card 1: KEMNAKER -->
+        <div class="help-card" style="align-items: flex-start; text-align: left; padding: 2.25rem 2rem;">
+          <div class="help-icon" style="align-self: center; background: linear-gradient(135deg, var(--primary-pastel), var(--accent-pastel)); color: var(--primary);">
+            <i class="fas fa-building"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--text-dark); text-align: center; width: 100%;">KEMNAKER RI</h3>
+          <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.75rem; flex-grow: 1; text-align: center; width: 100%;">Kementerian Ketenagakerjaan Republik Indonesia menangani kasus perselisihan hubungan industrial, PHK sepihak, upah di bawah minimum, dan pelanggaran jam kerja.</p>
+          <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 1rem; font-size: 0.875rem; color: var(--text-medium); display: flex; flex-direction: column; gap: 0.5rem;">
+            <span><i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Call Center:</strong> 1500-630</span>
+            <span><i class="fab fa-whatsapp" style="color: var(--success); margin-right: 0.5rem;"></i><strong>WhatsApp:</strong> 0811-9526-2537</span>
+            <span><i class="fas fa-globe" style="color: var(--accent); margin-right: 0.5rem;"></i><strong>Website:</strong> <a href="https://kemnaker.go.id" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 600;">kemnaker.go.id</a></span>
+          </div>
+        </div>
+
+        <!-- Card 2: Komnas Perempuan -->
+        <div class="help-card" style="align-items: flex-start; text-align: left; padding: 2.25rem 2rem;">
+          <div class="help-icon" style="align-self: center; background: linear-gradient(135deg, var(--primary-pastel), var(--accent-pastel)); color: var(--primary);">
+            <i class="fas fa-venus"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--text-dark); text-align: center; width: 100%;">Komnas Perempuan</h3>
+          <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.75rem; flex-grow: 1; text-align: center; width: 100%;">Komisi Nasional Anti Kekerasan terhadap Perempuan khusus menangani pengaduan bias gender, diskriminasi hak kehamilan/menyusui, serta kekerasan seksual di tempat kerja.</p>
+          <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 1rem; font-size: 0.875rem; color: var(--text-medium); display: flex; flex-direction: column; gap: 0.5rem;">
+            <span><i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Telepon:</strong> 021-3903963</span>
+            <span><i class="fas fa-envelope" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Email:</strong> petisi@komnasperempuan.go.id</span>
+            <span><i class="fas fa-globe" style="color: var(--accent); margin-right: 0.5rem;"></i><strong>Website:</strong> <a href="https://komnasperempuan.go.id" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 600;">komnasperempuan.go.id</a></span>
+          </div>
+        </div>
+
+        <!-- Card 3: YLBHI / LBH -->
+        <div class="help-card" style="align-items: flex-start; text-align: left; padding: 2.25rem 2rem;">
+          <div class="help-icon" style="align-self: center; background: linear-gradient(135deg, var(--primary-pastel), var(--accent-pastel)); color: var(--primary);">
+            <i class="fas fa-balance-scale"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--text-dark); text-align: center; width: 100%;">YLBHI / LBH</h3>
+          <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.75rem; flex-grow: 1; text-align: center; width: 100%;">Yayasan Lembaga Bantuan Hukum Indonesia memberikan pendampingan hukum dan konsultasi hukum gratis secara profesional untuk kaum buruh dan pekerja kecil.</p>
+          <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 1rem; font-size: 0.875rem; color: var(--text-medium); display: flex; flex-direction: column; gap: 0.5rem;">
+            <span><i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Telepon:</strong> 021-3929840</span>
+            <span><i class="fas fa-envelope" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Email:</strong> info@ylbhi.or.id</span>
+            <span><i class="fas fa-globe" style="color: var(--accent); margin-right: 0.5rem;"></i><strong>Website:</strong> <a href="https://ylbhi.or.id" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 600;">ylbhi.or.id</a></span>
+          </div>
+        </div>
+
+        <!-- Card 4: BP2MI -->
+        <div class="help-card" style="align-items: flex-start; text-align: left; padding: 2.25rem 2rem;">
+          <div class="help-icon" style="align-self: center; background: linear-gradient(135deg, var(--primary-pastel), var(--accent-pastel)); color: var(--primary);">
+            <i class="fas fa-globe-asia"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--text-dark); text-align: center; width: 100%;">BP2MI</h3>
+          <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.75rem; flex-grow: 1; text-align: center; width: 100%;">Badan Pelindungan Pekerja Migran Indonesia melayani perlindungan hukum dan pengaduan kasus eksploitasi khusus bagi Pekerja Migran Indonesia (PMI).</p>
+          <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 1rem; font-size: 0.875rem; color: var(--text-medium); display: flex; flex-direction: column; gap: 0.5rem;">
+            <span><i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Call Center:</strong> 0800-1000 (Bebas Pulsa)</span>
+            <span><i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Luar Negeri:</strong> +6221-2924-4800</span>
+            <span><i class="fas fa-globe" style="color: var(--accent); margin-right: 0.5rem;"></i><strong>Website:</strong> <a href="https://bp2mi.go.id" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 600;">bp2mi.go.id</a></span>
+          </div>
+        </div>
+
+        <!-- Card 5: Komnas HAM -->
+        <div class="help-card" style="align-items: flex-start; text-align: left; padding: 2.25rem 2rem;">
+          <div class="help-icon" style="align-self: center; background: linear-gradient(135deg, var(--primary-pastel), var(--accent-pastel)); color: var(--primary);">
+            <i class="fas fa-gavel"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--text-dark); text-align: center; width: 100%;">Komnas HAM</h3>
+          <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.75rem; flex-grow: 1; text-align: center; width: 100%;">Komisi Nasional Hak Asasi Manusia memantau, menyelidiki, dan menengahi perselisihan terkait tindakan perbudakan modern atau eksploitasi buruh berat.</p>
+          <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 1rem; font-size: 0.875rem; color: var(--text-medium); display: flex; flex-direction: column; gap: 0.5rem;">
+            <span><i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Telepon:</strong> 021-3925230</span>
+            <span><i class="fas fa-envelope" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Email:</strong> aduan@komnasham.go.id</span>
+            <span><i class="fas fa-globe" style="color: var(--accent); margin-right: 0.5rem;"></i><strong>Website:</strong> <a href="https://komnasham.go.id" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 600;">komnasham.go.id</a></span>
+          </div>
+        </div>
+
+        <!-- Card 6: BPJS Ketenagakerjaan -->
+        <div class="help-card" style="align-items: flex-start; text-align: left; padding: 2.25rem 2rem;">
+          <div class="help-icon" style="align-self: center; background: linear-gradient(135deg, var(--primary-pastel), var(--accent-pastel)); color: var(--primary);">
+            <i class="fas fa-heartbeat"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--text-dark); text-align: center; width: 100%;">BPJS Ketenagakerjaan</h3>
+          <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.75rem; flex-grow: 1; text-align: center; width: 100%;">Gunakan saluran BPJS Ketenagakerjaan jika perusahaan terindikasi menunggak iuran jaminan hari tua (JHT), jaminan pensiun, atau jaminan kecelakaan kerja Anda.</p>
+          <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 1rem; font-size: 0.875rem; color: var(--text-medium); display: flex; flex-direction: column; gap: 0.5rem;">
+            <span><i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 0.5rem;"></i><strong>Call Center:</strong> 175</span>
+            <span><i class="fab fa-whatsapp" style="color: var(--success); margin-right: 0.5rem;"></i><strong>WhatsApp:</strong> 0811-911175</span>
+            <span><i class="fas fa-globe" style="color: var(--accent); margin-right: 0.5rem;"></i><strong>Website:</strong> <a href="https://bpjsketenagakerjaan.go.id" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 600;">bpjsketenagakerjaan.go.id</a></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Artikel & Edukasi Section Panel -->
+<div class="dashboard-panel" id="panel-artikel">
+  <section class="section" id="artikel">
+    <div class="container">
+      <div class="section-header">
+        <div style="display:flex; align-items:center; justify-content:center; gap:0.75rem; margin-bottom:0.5rem; flex-wrap:wrap;">
+          <h2 style="margin-bottom:0;">Artikel & Sorotan Equality Terhangat</h2>
+          <span class="badge-live-feed" style="background:rgba(16, 185, 129, 0.1); color:#10B981; border:1px solid rgba(16, 185, 129, 0.2); border-radius:50px; padding:0.25rem 0.75rem; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:0.35rem; text-transform:uppercase; letter-spacing:0.05em;">
+            <span class="live-dot" style="width:8px; height:8px; background-color:#10B981; border-radius:50%; display:inline-block; animation: pulse-dot 1.5s infinite;"></span>
+            Live Updates Aktif
+          </span>
+        </div>
+        <p>Kumpulan artikel ulasan kritis bias gender di kantor, panduan hukum ketenagakerjaan, serta tips karir setara.</p>
+      </div>
+
+      <div class="article-controls-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+        <!-- Local Article Category Filter -->
+        <div class="article-filters" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="tab-btn active" data-article-filter="semua">Semua Artikel</button>
+          <button class="tab-btn" data-article-filter="Kesetaraan">Kesetaraan</button>
+          <button class="tab-btn" data-article-filter="Tips Hukum">Tips Hukum</button>
+          <button class="tab-btn" data-article-filter="Karir">Karir</button>
+        </div>
+        <!-- Action Buttons -->
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="simulateNewArticleBtn" style="background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-medium); font-weight:600; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <i class="fas fa-sync-alt" id="simulateSpinIcon"></i> Simulasikan Artikel Baru
+          </button>
+          <button class="btn btn-primary" id="openWriteArticleBtn">
+            <i class="fas fa-pen-fancy"></i> Tulis Artikel Baru
+          </button>
+        </div>
+      </div>
+
+      <div class="grid-3" id="articlesGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </section>
+</div>
+
+</main>
+
+  <!-- ================= MODALS INTERACTIVE ELEMENT ================= -->
+
+  <!-- Modal Template: General Law & Insight details -->
+  <div class="modal-overlay" id="regulationModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title" id="regModalTitle">Detail Peraturan</h2>
+        <button class="modal-close-btn" aria-label="Close Modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" id="regModalBody">
+        <!-- Loaded dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary modal-close-btn">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Template: Wage comparison charts -->
+  <div class="modal-overlay" id="chartModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">Visualisasi UMP</h2>
+        <button class="modal-close-btn" aria-label="Close Modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" id="chartModalBody">
+        <!-- Loaded dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary modal-close-btn">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Template: All Regulations Archive (Split Reader Panel) -->
+  <div class="modal-overlay" id="allRegulationsModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">Pusat Arsip Hukum & Kesetaraan Kerja</h2>
+        <button class="modal-close-btn" aria-label="Close Modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="padding:0; overflow:hidden;">
+        <div class="archive-layout">
+          <!-- Sidebar: List of regulations -->
+          <div class="archive-sidebar">
+            <div class="archive-search-wrapper">
+              <input type="text" id="archiveSearch" placeholder="Cari undang-undang atau kata kunci...">
+            </div>
+            <div class="archive-list" id="archiveList">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+          
+          <!-- Content Panel: Selected regulation details -->
+          <div class="archive-content-panel">
+            <div id="archiveContentPlaceholder" class="text-center" style="display:none; margin:auto; padding:2rem; color:var(--text-light);">
+              <i class="fas fa-balance-scale" style="font-size:3rem; margin-bottom:1rem; opacity:0.3;"></i>
+              <p>Pilih salah satu peraturan di sebelah kiri untuk membaca detailnya.</p>
+            </div>
+            <div id="archiveContentArea">
+              <div class="archive-content-header">
+                <span class="archive-item-tag badge badge-primary" id="archiveActiveTag" style="margin-bottom:0.5rem;">Kategori</span>
+                <h3 class="archive-content-title" id="archiveActiveTitle" style="font-family:var(--font-title); color:var(--text-dark); line-height:1.3; margin-bottom:0.5rem;">Judul Regulasi</h3>
+                <div class="archive-content-meta">
+                  <span><strong>Nomor:</strong> <span id="archiveActiveNumber">-</span></span>
+                </div>
+              </div>
+              <div class="archive-content-body reg-modal-text-content" id="archiveActiveBody">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid var(--border-focus); padding:1rem 1.5rem;">
+        <button class="btn btn-primary modal-close-btn">Tutup Dokumen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Template: Report Wizard Removed -->
+
+  <!-- Modal Template: Login Form -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-container" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Masuk ke EqualWork</h2>
+        <button class="modal-close-btn" aria-label="Close Modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginUser">Email atau Username</label>
+            <input type="text" id="loginUser" class="form-control" placeholder="Masukkan alamat email Anda..." required>
+          </div>
+          <div class="form-group">
+            <label for="loginPass">Kata Sandi</label>
+            <input type="password" id="loginPass" class="form-control" placeholder="Masukkan kata sandi..." required>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8125rem; margin-bottom:1.5rem;">
+            <label style="display:flex; align-items:center; gap:0.375rem; cursor:pointer;">
+              <input type="checkbox" style="accent-color:var(--primary);">
+              <span>Ingat saya</span>
+            </label>
+            <a href="#" style="color:var(--primary); text-decoration:underline;" onclick="showToast('Tautan pemulihan kata sandi dikirim!', 'info'); return false;">Lupa Sandi?</a>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Masuk Sekarang <i class="fas fa-sign-in-alt"></i></button>
+        </form>
+
+        <div style="text-align:center; font-size:0.875rem; margin-top:1.5rem; color:var(--text-light);">
+          Belum punya akun? <a href="#" style="color:var(--primary); font-weight:600; text-decoration:underline;" onclick="closeModal('loginModal'); openModal('registerModal'); return false;">Daftar Gratis</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Template: Register -->
+  <div class="modal-overlay" id="registerModal">
+    <div class="modal-container" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fas fa-user-plus"></i> Daftar Akun Gratis</h2>
+        <button class="modal-close-btn" aria-label="Close Modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="registerForm">
+          <div class="form-group">
+            <label for="regName">Nama Lengkap (Wajib)</label>
+            <input type="text" id="regName" class="form-control" placeholder="Masukkan nama lengkap Anda..." required>
+          </div>
+          <div class="form-group">
+            <label for="regEmail">Email atau Username (Wajib)</label>
+            <input type="text" id="regEmail" class="form-control" placeholder="Contoh: pekerja.hebat@gmail.com..." required>
+          </div>
+          <div class="form-group">
+            <label for="regRole">Peran Keanggotaan</label>
+            <select id="regRole" class="form-control" style="background-color:var(--bg-card); border:1px solid var(--border-focus); outline:none;">
+              <option value="Pekerja">Pekerja / Buruh Perempuan</option>
+              <option value="Pemberi Kerja">Pemberi Kerja / Manajemen Pabrik</option>
+              <option value="Staf Advokasi">Advokat / Serikat Pekerja</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="regPass">Kata Sandi Baru (Wajib)</label>
+            <input type="password" id="regPass" class="form-control" placeholder="Buat kata sandi aman..." required>
+          </div>
+          <div class="form-group">
+            <label for="regPassConfirm">Konfirmasi Kata Sandi (Wajib)</label>
+            <input type="password" id="regPassConfirm" class="form-control" placeholder="Masukkan ulang kata sandi..." required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:1.25rem;">Daftar Sekarang <i class="fas fa-check-circle"></i></button>
+        </form>
+
+        <div style="text-align:center; font-size:0.875rem; margin-top:1.5rem; color:var(--text-light);">
+          Sudah punya akun? <a href="#" style="color:var(--primary); font-weight:600; text-decoration:underline;" onclick="closeModal('registerModal'); openModal('loginModal'); return false;">Masuk di Sini</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Template: Admin Portal Dashboard -->
+  <div class="modal-overlay" id="adminPortalModal">
+    <div class="modal-container" style="max-width: 900px; width: 90%; height: 80vh;">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fas fa-user-shield"></i> Portal Administrasi EqualWork</h2>
+        <button class="modal-close-btn" aria-label="Close Modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="padding:0; display:flex; flex-direction:column; overflow:hidden;">
+        <!-- Tabs Header -->
+        <div style="display:flex; border-bottom:1px solid var(--border-focus); background-color:var(--bg-main); padding: 0.5rem 1.5rem 0 1.5rem;">
+          <button class="admin-tab-btn active" data-admin-tab="admin-reports" style="padding:0.75rem 1.25rem; font-weight:600; border-bottom:2px solid var(--primary); color:var(--primary);">
+            <i class="fas fa-bullhorn"></i> Pengaduan Masuk (<span id="adminReportsCount">2</span>)
+          </button>
+          <button class="admin-tab-btn" data-admin-tab="admin-users" style="padding:0.75rem 1.25rem; font-weight:600; color:var(--text-light); margin-left:1rem;">
+            <i class="fas fa-users-cog"></i> Sesi Login Pengguna (<span id="adminUsersCount">4</span>)
+          </button>
+        </div>
+
+        <!-- Tab Content: Reports -->
+        <div class="admin-tab-content active" id="admin-reports" style="flex-grow:1; overflow-y:auto; padding:1.5rem;">
+          <div class="table-wrapper">
+            <table class="wage-table" style="min-width:100%;">
+              <thead>
+                <tr>
+                  <th>Tiket & Tanggal</th>
+                  <th>Kategori & Instansi</th>
+                  <th>Identitas Pelapor</th>
+                  <th>Status Penanganan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminReportsTableBody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab Content: Users -->
+        <div class="admin-tab-content" id="admin-users" style="flex-grow:1; overflow-y:auto; padding:1.5rem; display:none;">
+          <div class="table-wrapper">
+            <table class="wage-table" style="min-width:100%;">
+              <thead>
+                <tr>
+                  <th>Email / Username</th>
+                  <th>Peran Akses</th>
+                  <th>Waktu Login</th>
+                  <th>Alamat IP</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid var(--border-focus); padding:1rem 1.5rem;">
+        <button class="btn btn-primary modal-close-btn">Tutup Portal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Template: Write and Publish Article Form -->
+  <div class="modal-overlay" id="publishArticleModal">
+    <div class="modal-container" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fas fa-pen-nib"></i> Tulis & Terbitkan Artikel Baru</h2>
+        <button class="modal-close-btn" aria-label="Close Modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="writeArticleForm">
+          <div class="form-group">
+            <label for="artTitle">Judul Artikel (Wajib)</label>
+            <input type="text" id="artTitle" class="form-control" placeholder="Contoh: Mengatasi Diskriminasi Gender..." required>
+          </div>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="artCategory">Kategori</label>
+              <select id="artCategory" class="form-control" style="background-color:var(--bg-card); border:1px solid var(--border-focus); outline:none;">
+                <option value="Kesetaraan">Kesetaraan</option>
+                <option value="Tips Hukum">Tips Hukum</option>
+                <option value="Karir">Karir</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="artAuthor">Nama Penulis (Wajib)</label>
+              <input type="text" id="artAuthor" class="form-control" placeholder="Nama Anda..." required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="artTime">Estimasi Waktu Baca</label>
+              <input type="text" id="artTime" class="form-control" placeholder="Contoh: 5 min baca" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="artDate">Tanggal Terbit</label>
+              <input type="text" id="artDate" class="form-control" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="artDesc">Deskripsi Ringkas (Wajib)</label>
+            <input type="text" id="artDesc" class="form-control" placeholder="Ringkasan 1 kalimat untuk tampilan depan..." required>
+          </div>
+
+          <div class="form-group">
+            <label for="artBody">Isi Lengkap Artikel (Format HTML didukung, Wajib)</label>
+            <textarea id="artBody" class="form-control" rows="8" placeholder="Tuliskan ulasan mendalam Anda mengenai kesetaraan gender dan hak kerja di sini..." style="resize:vertical;" required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:0.5rem;">
+            <i class="fas fa-upload"></i> Terbitkan Artikel Sekarang
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll to top floating button -->
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Kembali ke Atas">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <!-- App logic integration -->
+  <script src="assets/js/app.js?v=1.2.0"></script>
+</body>
+</html>
