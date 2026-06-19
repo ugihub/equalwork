@@ -161,6 +161,62 @@ const REGULATIONS_DB = [
   }
 ];
 
+// Helper to format regulation HTML content dynamically into a premium structured layout
+function formatRegulationContent(content) {
+  if (!content) return "";
+  let formatted = content;
+  
+  // 1. Format Fokus Utama Callout Box
+  formatted = formatted.replace(
+    /<p>\s*<strong>Fokus Utama:<\/strong>\s*([\s\S]*?)<\/p>/i,
+    `<div class="modal-callout-box accent-box">
+       <div class="callout-icon-wrapper">
+         <i class="fas fa-bullseye"></i>
+       </div>
+       <div class="callout-content">
+         <span class="callout-title">Fokus Utama</span>
+         <p>$1</p>
+       </div>
+     </div>`
+  );
+  
+  // 2. Format Sanksi Pelanggaran Callout Box
+  formatted = formatted.replace(
+    /<p>\s*<strong>Sanksi Pelanggaran:<\/strong>\s*([\s\S]*?)<\/p>/i,
+    `<div class="modal-callout-box danger-box">
+       <div class="callout-icon-wrapper">
+         <i class="fas fa-exclamation-triangle"></i>
+       </div>
+       <div class="callout-content">
+         <span class="callout-title">Sanksi Pelanggaran</span>
+         <p>$1</p>
+       </div>
+     </div>`
+  );
+
+  // 3. Format Implikasi Kesetaraan Gender Callout Box
+  formatted = formatted.replace(
+    /<p>\s*<strong>Implikasi Kesetaraan Gender:<\/strong>\s*([\s\S]*?)<\/p>/i,
+    `<div class="modal-callout-box purple-box">
+       <div class="callout-icon-wrapper">
+         <i class="fas fa-venus-mars"></i>
+       </div>
+       <div class="callout-content">
+         <span class="callout-title">Implikasi Kesetaraan Gender</span>
+         <p>$1</p>
+       </div>
+     </div>`
+  );
+  
+  // 4. Format Section Title headers
+  formatted = formatted.replace(
+    /<p>\s*<strong>(Poin Kunci[^:]*|Perubahan Penting[^:]*|Ketentuan Detail|Aspek Psikososial[^:]*|Implikasi di Dunia Kerja|Definisi & Aspek[^:]*|Aspek Hukum[^:]*):<\/strong>\s*<\/p>/gi,
+    `<h4 class="modal-section-title"><i class="fas fa-star section-title-icon"></i> $1</h4>`
+  );
+
+  return formatted;
+}
+
 const UMP_2024_DB = [
   // Sumatera
   { prov: "Aceh", region: "sumatra", wage: 3460672, percent: 1.38 },
@@ -560,9 +616,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initPDFExporter();
   initAllRegulationsArchive();
   initAdminPortal();
-  initWriteArticle();
-  initLiveArticleFeed();
+  // Fitur publikasi referensi dihapus — semua referensi dikurasi oleh penulis
   initRegister();
+  initLoaderScreen();
 });
 
 // Dashboard SPA Link Switching & Mobile Toggle
@@ -625,12 +681,6 @@ function initNavbar() {
       }
     }
   });
-
-  // Login Modal Event
-  const loginBtn = document.querySelector("#loginBtn");
-  if (loginBtn) {
-    loginBtn.addEventListener("click", () => openModal("loginModal"));
-  }
 }
 
 // Stats Counter
@@ -762,7 +812,7 @@ function openRegulationModal(id) {
     <p class="reg-modal-number"><strong>No. Regulasi:</strong> ${item.number}</p>
     <h3 style="font-size:1.35rem; margin-bottom:1rem; color:var(--text-dark); font-family:var(--font-title);">${item.title}</h3>
     <div class="reg-modal-text-content">
-      ${item.content}
+      ${formatRegulationContent(item.content)}
     </div>
   `;
 
@@ -774,6 +824,7 @@ function initWagesSection() {
   const mapPaths = document.querySelectorAll(".map-region");
   const tableBody = document.querySelector("#wageTableBody");
   const searchInput = document.querySelector("#wageSearch");
+  const umkSearchInput = document.querySelector("#umkSearch");
   const resetBtn = document.querySelector("#resetMapFilter");
   const tooltip = document.getElementById("mapTooltip");
 
@@ -783,8 +834,65 @@ function initWagesSection() {
 
   if (!tableBody || !searchInput) return;
 
+  // Pagination Builder Helper
+  const setupPagination = (containerId, totalItems, itemsPerPage, currentPage, onPageChange) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = "";
+    
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) {
+      container.style.display = "none";
+      return;
+    }
+    container.style.display = "flex";
+    
+    const info = document.createElement("div");
+    info.className = "pagination-info";
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+    info.innerText = `Menampilkan ${startItem}-${endItem} dari ${totalItems}`;
+    container.appendChild(info);
+    
+    const controls = document.createElement("div");
+    controls.className = "pagination-controls";
+    
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "pagination-btn";
+    prevBtn.innerHTML = `<i class="fas fa-chevron-left"></i>`;
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener("click", () => onPageChange(currentPage - 1));
+    controls.appendChild(prevBtn);
+    
+    const maxVisiblePages = 3;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      const pageBtn = document.createElement("button");
+      pageBtn.className = `pagination-btn ${currentPage === i ? 'active' : ''}`;
+      pageBtn.innerText = i;
+      pageBtn.addEventListener("click", () => onPageChange(i));
+      controls.appendChild(pageBtn);
+    }
+    
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "pagination-btn";
+    nextBtn.innerHTML = `<i class="fas fa-chevron-right"></i>`;
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener("click", () => onPageChange(currentPage + 1));
+    controls.appendChild(nextBtn);
+    
+    container.appendChild(controls);
+  };
+
   // Render UMP Table List
-  const renderUMPTable = (regionFilter = null, searchQuery = "") => {
+  const renderUMPTable = (regionFilter = null, searchQuery = "", page = 1) => {
     tableBody.innerHTML = "";
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -796,10 +904,20 @@ function initWagesSection() {
 
     if (data.length === 0) {
       tableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding:2rem;">Provinsi tidak ditemukan</td></tr>`;
+      const pagContainer = document.getElementById("umpPagination");
+      if (pagContainer) pagContainer.style.display = "none";
       return;
     }
 
-    data.forEach(item => {
+    // Paginate UMP data
+    const totalItems = data.length;
+    const itemsPerPage = 5;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    let currentPage = Math.max(1, Math.min(page, totalPages));
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
+
+    paginatedData.forEach(item => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td style="font-weight: 600; color:var(--text-dark);">${item.prov}</td>
@@ -808,6 +926,11 @@ function initWagesSection() {
         <td><span class="badge badge-primary">${item.region.toUpperCase()}</span></td>
       `;
       tableBody.appendChild(tr);
+    });
+
+    // Render UMP Pagination
+    setupPagination("umpPagination", totalItems, itemsPerPage, currentPage, (newPage) => {
+      renderUMPTable(regionFilter, searchQuery, newPage);
     });
 
     if (regionFilter) {
@@ -819,9 +942,8 @@ function initWagesSection() {
   };
 
   // Render UMK Table List (Cities)
-  const renderUMKTable = (selectedProvince = null, searchQuery = "") => {
+  const renderUMKTable = (selectedProvince = null, searchQuery = "", page = 1) => {
     const umkTableBody = document.querySelector("#umkTableBody");
-    const umkSearchInput = document.querySelector("#umkSearch");
     if (!umkTableBody) return;
 
     umkTableBody.innerHTML = "";
@@ -846,10 +968,20 @@ function initWagesSection() {
 
     if (matchedRows.length === 0) {
       umkTableBody.innerHTML = `<tr><td colspan="3" class="text-center" style="padding:2rem;">Data UMK kota tidak ditemukan</td></tr>`;
+      const pagContainer = document.getElementById("umkPagination");
+      if (pagContainer) pagContainer.style.display = "none";
       return;
     }
 
-    matchedRows.forEach(item => {
+    // Paginate UMK data
+    const totalItems = matchedRows.length;
+    const itemsPerPage = 5;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    let currentPage = Math.max(1, Math.min(page, totalPages));
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedData = matchedRows.slice(startIndex, startIndex + itemsPerPage);
+
+    paginatedData.forEach(item => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td style="font-weight:600; color:var(--text-dark);">${item.city}</td>
@@ -859,10 +991,15 @@ function initWagesSection() {
       umkTableBody.appendChild(tr);
     });
 
+    // Render UMK Pagination
+    setupPagination("umkPagination", totalItems, itemsPerPage, currentPage, (newPage) => {
+      renderUMKTable(selectedProvince, searchQuery, newPage);
+    });
+
     // Bind local UMK search keyup
-    if (!umkSearchInput.dataset.bound) {
+    if (umkSearchInput && !umkSearchInput.dataset.bound) {
       umkSearchInput.addEventListener("input", (e) => {
-        renderUMKTable(selectedProvince, e.target.value);
+        renderUMKTable(selectedProvince, e.target.value, 1);
       });
       umkSearchInput.dataset.bound = "true";
     }
@@ -937,7 +1074,7 @@ function initWagesSection() {
       }
       
       // Update tables depending on map selection
-      renderUMPTable(currentActiveRegion, searchInput.value);
+      renderUMPTable(currentActiveRegion, searchInput.value, 1);
 
       // If UMK tab is visible, filter UMK by province click if province is in UMK list
       const activeTabBtn = document.querySelector(".wage-hub-tab-btn.active");
@@ -948,9 +1085,9 @@ function initWagesSection() {
         let demoProv = "Jawa Barat";
         if (currentActiveRegion === "sumatra") demoProv = "DKI Jakarta"; // default demo
         else if (currentActiveRegion === "java") demoProv = "Jawa Barat";
-        renderUMKTable(demoProv);
+        renderUMKTable(demoProv, umkSearchInput ? umkSearchInput.value : "", 1);
       } else {
-        renderUMKTable();
+        renderUMKTable(null, umkSearchInput ? umkSearchInput.value : "", 1);
       }
     });
   });
@@ -995,15 +1132,15 @@ function initWagesSection() {
 
   // Table UMP Search Input
   searchInput.addEventListener("input", (e) => {
-    renderUMPTable(currentActiveRegion, e.target.value);
+    renderUMPTable(currentActiveRegion, e.target.value, 1);
   });
 
   // Reset Map Filter button
   resetBtn.addEventListener("click", () => {
     currentActiveRegion = null;
     mapPaths.forEach(p => p.classList.remove("active"));
-    renderUMPTable(null, searchInput.value);
-    renderUMKTable();
+    renderUMPTable(null, searchInput.value, 1);
+    renderUMKTable(null, umkSearchInput ? umkSearchInput.value : "", 1);
   });
 
   // Tab Switcher Actions
@@ -1018,7 +1155,7 @@ function initWagesSection() {
 
       // Load specific tab components
       if (targetId === "hub-umk") {
-        renderUMKTable();
+        renderUMKTable(null, umkSearchInput ? umkSearchInput.value : "", 1);
       } else if (targetId === "hub-asean") {
         renderASEANChart();
       } else if (targetId === "hub-simulator") {
@@ -1034,7 +1171,7 @@ function initWagesSection() {
   }
 
   // Initial renders
-  renderUMPTable();
+  renderUMPTable(null, "", 1);
 }
 
 // Factory Salary Simulator Calculation Core
@@ -1164,52 +1301,92 @@ function initInsights() {
       const stat = btn.closest(".insight-card").querySelector(".insight-stat-box").innerText;
       const desc = btn.closest(".insight-card").querySelector("p").innerText;
       
+      let iconHtml = "";
+      let themeColor = "var(--primary)";
+      let pastelBg = "var(--primary-pastel)";
+      let textColor = "var(--primary-dark)";
+      let bulletIcon = "fa-check-circle";
+      
+      if (title.includes("Pay Gap")) {
+        iconHtml = `<div class="modal-stat-icon purple"><i class="fas fa-wallet"></i></div>`;
+        themeColor = "var(--primary)";
+        pastelBg = "var(--primary-pastel)";
+        textColor = "var(--primary-dark)";
+        bulletIcon = "fa-minus-circle";
+      } else if (title.includes("Leadership")) {
+        iconHtml = `<div class="modal-stat-icon pink"><i class="fas fa-crown"></i></div>`;
+        themeColor = "#F43F5E";
+        pastelBg = "#FFF1F2";
+        textColor = "#E11D48";
+        bulletIcon = "fa-arrow-trend-up";
+      } else if (title.includes("Rekrutmen")) {
+        iconHtml = `<div class="modal-stat-icon green"><i class="fas fa-user-tie"></i></div>`;
+        themeColor = "var(--success)";
+        pastelBg = "#E6F4EA";
+        textColor = "#137333";
+        bulletIcon = "fa-shield-halved";
+      } else {
+        iconHtml = `<div class="modal-stat-icon orange"><i class="fas fa-shield-alt"></i></div>`;
+        themeColor = "var(--warning)";
+        pastelBg = "#FEF3C7";
+        textColor = "#b45309";
+        bulletIcon = "fa-life-ring";
+      }
+
       let extraInfo = "";
       if (title.includes("Pay Gap")) {
         extraInfo = `
-          <p>Kesenjangan upah gender di Indonesia saat ini menduduki rata-rata 23%, yang berarti setiap Rp10.000 yang diperoleh pria, pekerja wanita hanya memperoleh Rp7.700 pada bidang kompetensi yang sama.</p>
-          <div style="background-color:var(--primary-pastel); padding:1rem; border-radius:var(--radius-md); margin:1.5rem 0;">
-            <h4 style="margin-bottom:0.5rem; color:var(--primary-dark);">Faktor Penyebab:</h4>
-            <ul>
-              <li>Beban tugas domestik/keluarga yang menumpuk pada wanita.</li>
-              <li>Negosiasi gaji awal karir yang cenderung kurang asertif dibanding pelamar pria.</li>
-              <li>Kurangnya standardisasi struktur dan skala upah transparan di tingkat internal perusahaan.</li>
+          <div class="modal-desc-box">
+            <p>Kesenjangan upah gender di Indonesia saat ini menduduki rata-rata 23%, yang berarti setiap Rp10.000 yang diperoleh pria, pekerja wanita hanya memperoleh Rp7.700 pada bidang kompetensi yang sama.</p>
+          </div>
+          <div class="modal-callout-card" style="border-left: 4px solid ${themeColor}; background-color: ${pastelBg};">
+            <h4 style="color: ${textColor};"><i class="fas fa-exclamation-circle"></i> Faktor Penyebab Utama</h4>
+            <ul class="modal-bullet-list">
+              <li><i class="fas fa-home" style="color: ${themeColor}"></i> <span><strong>Beban Ganda (Double Burden):</strong> Tugas domestik dan keluarga masih menumpuk secara tidak proporsional pada pekerja wanita.</span></li>
+              <li><i class="fas fa-comments-dollar" style="color: ${themeColor}"></i> <span><strong>Bias Wawancara Awal:</strong> Negosiasi gaji di awal karir cenderung kurang asertif dibanding pelamar pria karena tekanan sosial.</span></li>
+              <li><i class="fas fa-sitemap" style="color: ${themeColor}"></i> <span><strong>Transparansi Upah:</strong> Kurangnya standardisasi struktur dan skala upah yang terbuka di tingkat manajemen internal.</span></li>
             </ul>
           </div>
         `;
       } else if (title.includes("Leadership")) {
         extraInfo = `
-          <p>Meskipun jumlah pekerja wanita di level staf cukup merata, persentase perempuan yang memegang peranan kepemimpinan puncak seperti Manajer, Direktur, atau Komisaris hanya berkisar 27% secara nasional.</p>
-          <div style="background-color:rgba(236,72,153,0.05); padding:1rem; border-radius:var(--radius-md); margin:1.5rem 0;">
-            <h4 style="margin-bottom:0.5rem; color:var(--accent);">Upaya Peningkatan:</h4>
-            <ul>
-              <li>Menerapkan mentorship program khusus karyawan perempuan potensial.</li>
-              <li>Menyediakan kebijakan jam kerja fleksibel (Flexible Work Arrangement).</li>
-              <li>Membangun target keberagaman gender dalam promosi tahunan manajemen level menengah atas.</li>
+          <div class="modal-desc-box">
+            <p>Meskipun jumlah pekerja wanita di level staf cukup merata, persentase perempuan yang memegang peranan kepemimpinan puncak seperti Manajer, Direktur, atau Komisaris hanya berkisar 27% secara nasional.</p>
+          </div>
+          <div class="modal-callout-card" style="border-left: 4px solid ${themeColor}; background-color: ${pastelBg};">
+            <h4 style="color: ${textColor};"><i class="fas fa-lightbulb"></i> Langkah Aksi Rekomendasi</h4>
+            <ul class="modal-bullet-list">
+              <li><i class="fas fa-users-gear" style="color: ${themeColor}"></i> <span><strong>Sponsorship Program:</strong> Menyediakan mentorship berstruktur khusus bagi karyawati berpotensi tinggi ke jenjang eksekutif.</span></li>
+              <li><i class="fas fa-business-time" style="color: ${themeColor}"></i> <span><strong>Fleksibilitas Kerja:</strong> Menerapkan opsi jam kerja fleksibel (FWA) untuk mengakomodasi keseimbangan karir dan domestik.</span></li>
+              <li><i class="fas fa-chart-pie" style="color: ${themeColor}"></i> <span><strong>Kuota Representasi:</strong> Menetapkan target sukarela minimal 30% keterwakilan perempuan di level dewan direksi.</span></li>
             </ul>
           </div>
         `;
       } else if (title.includes("Rekrutmen")) {
         extraInfo = `
-          <p>Bias gender dalam proses penapisan CV dan wawancara masih terjadi secara masif. Data menunjukkan 37% pelamar perempuan pernah ditanyai tentang status pernikahan, kehamilan, atau rencana memiliki anak selama wawancara rekrutmen.</p>
-          <div style="background-color:rgba(16,185,129,0.05); padding:1rem; border-radius:var(--radius-md); margin:1.5rem 0;">
-            <h4 style="margin-bottom:0.5rem; color:var(--success);">Rekomendasi Praktik Baik:</h4>
-            <ul>
-              <li>Menerapkan sistem blind recruitment (penghapusan foto, umur, dan indikator status nikah di seleksi awal).</li>
-              <li>Melakukan standarisasi pertanyaan wawancara terlepas dari gender calon pelamar.</li>
-              <li>Menambahkan keragaman panel pewawancara.</li>
+          <div class="modal-desc-box">
+            <p>Bias gender dalam proses penapisan CV dan wawancara masih terjadi secara masif. Data menunjukkan 37% pelamar perempuan pernah ditanyai tentang status pernikahan, kehamilan, atau rencana memiliki anak selama wawancara rekrutmen.</p>
+          </div>
+          <div class="modal-callout-card" style="border-left: 4px solid ${themeColor}; background-color: ${pastelBg};">
+            <h4 style="color: ${textColor};"><i class="fas fa-check-double"></i> Rekomendasi Praktik Baik</h4>
+            <ul class="modal-bullet-list">
+              <li><i class="fas fa-mask" style="color: ${themeColor}"></i> <span><strong>Blind Recruitment:</strong> Menghapus foto, nama lengkap, jenis kelamin, dan umur pada tahap awal kurasi CV.</span></li>
+              <li><i class="fas fa-clipboard-question" style="color: ${themeColor}"></i> <span><strong>Standardisasi Wawancara:</strong> Menggunakan daftar pertanyaan wawancara baku yang sama bagi seluruh pelamar terlepas dari gender.</span></li>
+              <li><i class="fas fa-user-group" style="color: ${themeColor}"></i> <span><strong>Panel Wawancara Beragam:</strong> Memastikan panel pewawancara terdiri dari kombinasi pria dan wanita untuk meminimalkan bias subjektif.</span></li>
             </ul>
           </div>
         `;
       } else {
         extraInfo = `
-          <p>Berdasarkan data survei, sekitar 60% pekerja perempuan pernah berhadapan dengan salah satu bentuk kekerasan seksual atau verbal di wilayah kerja. Mayoritas korban enggan melapor karena takut ancaman pemecatan.</p>
-          <div style="background-color:rgba(245,158,11,0.05); padding:1rem; border-radius:var(--radius-md); margin:1.5rem 0;">
-            <h4 style="margin-bottom:0.5rem; color:var(--warning);">Layanan Perlindungan:</h4>
-            <ul>
-              <li>Penyusunan SOP Penanganan Pelecehan Terintegrasi.</li>
-              <li>Pendampingan pelaporan hukum gratis bekerja sama dengan LBH dan Komnas Perempuan.</li>
-              <li>Pemberlakuan jaminan keamanan korban bebas intimidasi pasca pelaporan.</li>
+          <div class="modal-desc-box">
+            <p>Berdasarkan data survei, sekitar 60% pekerja perempuan pernah berhadapan dengan salah satu bentuk kekerasan seksual atau verbal di wilayah kerja. Mayoritas korban enggan melapor karena takut ancaman pemecatan.</p>
+          </div>
+          <div class="modal-callout-card" style="border-left: 4px solid ${themeColor}; background-color: ${pastelBg};">
+            <h4 style="color: ${textColor};"><i class="fas fa-shield-halved"></i> Protokol & Layanan Perlindungan</h4>
+            <ul class="modal-bullet-list">
+              <li><i class="fas fa-file-shield" style="color: ${themeColor}"></i> <span><strong>SOP Zero-Tolerance:</strong> Menyusun tata cara formal penanganan pengaduan pelecehan yang jelas dan tegas di lingkungan perusahaan.</span></li>
+              <li><i class="fas fa-handshake-angle" style="color: ${themeColor}"></i> <span><strong>Kemitraan LBH:</strong> Menyediakan fasilitas pendampingan hukum dan psikologis gratis bekerja sama dengan lembaga independen.</span></li>
+              <li><i class="fas fa-user-lock" style="color: ${themeColor}"></i> <span><strong>Anonimitas Pengaduan:</strong> Membuka kanal whistleblowing terproteksi yang menjamin perlindungan karir pelapor dari retaliasi.</span></li>
             </ul>
           </div>
         `;
@@ -1221,11 +1398,24 @@ function initInsights() {
 
       modalTitle.innerText = "Insight Deskripsi";
       body.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-          <span class="badge badge-accent" style="font-size:0.875rem;">STATISTIK KUNCI: ${stat}</span>
+        <div class="modal-insight-header">
+          <div class="modal-insight-hero">
+            ${iconHtml}
+            <div>
+              <span class="modal-insight-eyebrow">STATISTIK KUNCI</span>
+              <h3 class="modal-insight-title">${title}</h3>
+            </div>
+          </div>
+          <div class="modal-stat-value" style="color: ${textColor}; border-color: ${themeColor}; background-color: ${pastelBg};">
+            ${stat}
+          </div>
         </div>
-        <h3 style="font-size:1.35rem; margin-bottom:1rem; font-family:var(--font-title); color:var(--text-dark);">${title}</h3>
-        <p style="color:var(--text-medium); font-size:1rem; margin-bottom:1.5rem; line-height:1.6;">${desc}</p>
+        
+        <div class="modal-insight-intro">
+          <div class="quote-bar" style="background-color: ${themeColor};"></div>
+          <p class="modal-insight-desc">${desc}</p>
+        </div>
+        
         ${extraInfo}
       `;
 
@@ -1502,18 +1692,40 @@ function openInstansiModal() {
 // 8. Artikel & Edukasi (Equality Hot Topics)
 function initArticles() {
   const grid = document.querySelector("#articlesGrid");
-  const filterButtons = document.querySelectorAll(".article-filters .tab-btn");
+  const filterButtons = document.querySelectorAll(".artikel-filter-tabs .artikel-tab-btn");
   if (!grid) return;
+
+  // Category config: gradient colors + icon
+  const CATEGORY_CONFIG = {
+    "Kesetaraan": {
+      from: "#0284C7", to: "#1E40AF",
+      icon: "fas fa-venus-mars",
+      accent: "rgba(2, 132, 199, 0.15)"
+    },
+    "Tips Hukum": {
+      from: "#1E3A8A", to: "#0369A1",
+      icon: "fas fa-gavel",
+      accent: "rgba(30, 58, 138, 0.15)"
+    },
+    "Karir": {
+      from: "#1D4ED8", to: "#0284C7",
+      icon: "fas fa-chart-line",
+      accent: "rgba(29, 78, 216, 0.15)"
+    }
+  };
 
   const renderArticles = (categoryFilter = "semua") => {
     grid.innerHTML = "";
-    
+
     const filtered = ARTICLES_DB.filter(art => {
       return categoryFilter === "semua" || art.category === categoryFilter;
     });
 
     if (filtered.length === 0) {
-      grid.innerHTML = `<div style="grid-column: span 3; text-align:center; padding:3rem; color:var(--text-light); font-weight:500;">Belum terdapat artikel dalam kategori ini.</div>`;
+      grid.innerHTML = `<div style="grid-column: span 3; text-align:center; padding:4rem 2rem; color:var(--text-light); font-weight:500;">
+        <i class="fas fa-newspaper" style="font-size:2.5rem; opacity:0.25; margin-bottom:1rem; display:block;"></i>
+        Belum terdapat artikel dalam kategori ini.
+      </div>`;
       return;
     }
 
@@ -1525,34 +1737,61 @@ function initArticles() {
           card.classList.remove("new-article");
           delete art.isNew;
         }, 6000);
-      }      
-      let rectColor = "#1E3A8A";
-      if (art.category === "Kesetaraan") rectColor = "#0284C7";
-      else if (art.category === "Tips Hukum") rectColor = "#2563EB";
-      else if (art.category === "Karir") rectColor = "#1D4ED8";
+      }
+
+      const cfg = CATEGORY_CONFIG[art.category] || CATEGORY_CONFIG["Kesetaraan"];
+      const from = cfg.from;
+      const to = cfg.to;
 
       const abstractSvg = `
-        <svg width="350" height="200" viewBox="0 0 350 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="350" height="200" fill="${rectColor}"/>
-          <circle cx="280" cy="60" r="80" fill="rgba(255,255,255,0.08)"/>
-          <path d="M-20 120L200 60L380 220H-20V120Z" fill="rgba(255,255,255,0.05)"/>
-          <path d="M120 180L240 100L390 230H120V180Z" fill="rgba(255,255,255,0.03)"/>
-          <text x="30" y="50" fill="white" font-family="'Outfit', sans-serif" font-weight="800" font-size="16" opacity="0.85">${art.category.toUpperCase()}</text>
+        <svg width="400" height="160" viewBox="0 0 400 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad-${art.id}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="${from}"/>
+              <stop offset="100%" stop-color="${to}"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="160" fill="url(#grad-${art.id})"/>
+          <!-- Decorative circles -->
+          <circle cx="340" cy="30" r="80" fill="rgba(255,255,255,0.07)"/>
+          <circle cx="50" cy="140" r="60" fill="rgba(255,255,255,0.05)"/>
+          <!-- Wave shape -->
+          <path d="M0 100 Q100 60 200 90 Q300 120 400 80 L400 160 L0 160 Z" fill="rgba(255,255,255,0.06)"/>
+          <!-- Grid dots -->
+          <g opacity="0.12">
+            ${[0,1,2,3,4].map(col => [0,1,2,3].map(row =>
+              `<circle cx="${col*80+40}" cy="${row*40+20}" r="1.5" fill="white"/>`
+            ).join('')).join('')}
+          </g>
+          <!-- Icon -->
+          <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" 
+                font-family="'Font Awesome 6 Free'" font-weight="900" font-size="36" 
+                fill="rgba(255,255,255,0.18)">&#xf228;</text>
         </svg>
       `;
 
       card.innerHTML = `
         <div class="article-img-wrapper">
           ${abstractSvg}
+          <span class="article-category-badge">${art.category}</span>
+          <span class="article-time-pill"><i class="far fa-clock"></i> ${art.time}</span>
         </div>
         <div class="article-content">
           <div class="article-meta">
             <span><i class="far fa-user"></i> ${art.author}</span>
-            <span><i class="far fa-clock"></i> ${art.time}</span>
+            <span><i class="far fa-calendar-alt"></i> ${art.date}</span>
           </div>
           <h3 class="article-title"><a href="#" class="art-link" data-id="${art.id}">${art.title}</a></h3>
           <p class="article-desc">${art.desc}</p>
-          <button class="btn-link art-link" data-id="${art.id}">Baca Selengkapnya <i class="fas fa-arrow-right"></i></button>
+          <div class="article-card-footer">
+            <div class="article-card-footer-left">
+              <button class="article-read-btn art-link" data-id="${art.id}">
+                Baca Selengkapnya <i class="fas fa-arrow-right"></i>
+              </button>
+              ${art.link ? `<a href="${art.link}" target="_blank" rel="noopener" class="article-source-link"><i class="fas fa-external-link-alt"></i> Buka Sumber</a>` : ''}
+            </div>
+            <span class="article-date-badge">${art.date}</span>
+          </div>
         </div>
       `;
 
@@ -1590,6 +1829,21 @@ function openArticleModal(id) {
   if (!body || !modalTitle) return;
 
   modalTitle.innerText = "Artikel Edukasi";
+
+  let sourceLinkHtml = '';
+  if (art.link) {
+    sourceLinkHtml = `
+      <div style="display:flex; align-items:center; gap:0.75rem; background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.15); border-radius:var(--radius-lg); padding:0.85rem 1.1rem; margin-bottom:1.25rem;">
+        <i class="fas fa-external-link-alt" style="color:var(--primary); font-size:0.9rem;"></i>
+        <span style="font-size:0.8rem; font-weight:600; color:var(--text-light);">Sumber:</span>
+        <a href="${art.link}" target="_blank" rel="noopener" style="font-size:0.8125rem; font-weight:600; color:var(--primary); text-decoration:none; word-break:break-all;">
+          ${art.link}
+          <i class="fas fa-arrow-right" style="font-size:0.65rem; margin-left:0.25rem;"></i>
+        </a>
+      </div>
+    `;
+  }
+
   body.innerHTML = `
     <span class="badge badge-primary" style="margin-bottom:1rem;">${art.category}</span>
     <h3 style="font-size:1.6rem; line-height:1.3; margin-bottom:0.75rem; font-family:var(--font-title); color:var(--text-dark);">${art.title}</h3>
@@ -1599,6 +1853,7 @@ function openArticleModal(id) {
       <span><i class="far fa-clock"></i> Estimasi: <strong>${art.time}</strong></span>
     </div>
     <div class="reg-modal-text-content" style="font-size:1.05rem;">
+      ${sourceLinkHtml}
       ${art.body}
     </div>
   `;
@@ -1613,16 +1868,130 @@ function initPDFExporter() {
 
   downloadBtn.addEventListener("click", () => {
     showToast("Mempersiapkan dokumen cetak laporan UMP/UMK...", "info");
-    
-    // Set current print date for document header
+
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const dateStr = new Date().toLocaleDateString('id-ID', options);
-    document.body.setAttribute("data-print-date", dateStr);
 
-    setTimeout(() => {
-      // Trigger native browser print which uses print stylesheet overrides
-      window.print();
-    }, 500);
+    // Build UMP table rows (all data, no pagination)
+    let umpRows = UMP_2024_DB.map(item => {
+      const pct = item.percent >= 0 ? item.percent.toFixed(2) : '0';
+      return `<tr>
+        <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt;">${item.prov}</td>
+        <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt; text-align:right;">${formatRupiah(item.wage)}</td>
+        <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt; text-align:right;">+${pct}%</td>
+      </tr>`;
+    }).join('');
+
+    // Build UMK table rows (all cities across all provinces)
+    let umkRows = '';
+    Object.keys(UMK_2024_DB).forEach(prov => {
+      UMK_2024_DB[prov].forEach(city => {
+        umkRows += `<tr>
+          <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt;">${city.city}</td>
+          <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt;">${prov}</td>
+          <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt; text-align:right;">${formatRupiah(city.wage)}</td>
+        </tr>`;
+      });
+    });
+
+    // Build ASEAN comparison rows
+    let aseanRows = ASEAN_WAGES_DB.map(item =>
+      `<tr>
+        <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt; font-weight:${item.highlight ? '700' : '400'};">${item.country}</td>
+        <td style="padding:0.35rem 0.6rem; border-bottom:1px solid #E2E8F0; font-size:8.5pt; text-align:right;">${item.valStr}</td>
+      </tr>`
+    ).join('');
+
+    // Open a new window with the complete print document
+    const printWin = window.open('', '_blank');
+    printWin.document.write(`<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Upah Minimum Indonesia</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; padding: 2.5rem; color: #1E293B; }
+    h1 { text-align: center; font-size: 18pt; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+    .subtitle { text-align: center; font-size: 10pt; color: #64748B; margin-bottom: 0.25rem; }
+    .date { text-align: center; font-size: 9pt; color: #94A3B8; margin-bottom: 2rem; border-bottom: 3px double #1E3A8A; padding-bottom: 0.75rem; }
+    h2 { font-size: 13pt; font-weight: 700; color: #1E3A8A; margin-top: 2rem; margin-bottom: 0.75rem; border-left: 4px solid #2563EB; padding-left: 0.6rem; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    thead th { background: #1E3A8A; color: #fff; padding: 0.45rem 0.6rem; font-size: 8pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+    thead th:last-child { text-align: right; }
+    tbody tr:nth-child(even) { background: #F8FAFC; }
+    .footer { text-align: center; font-size: 7.5pt; color: #94A3B8; margin-top: 2rem; border-top: 1px solid #E2E8F0; padding-top: 1rem; }
+    .no-print { text-align: center; margin-top: 1.5rem; }
+    .no-print button { padding: 0.7rem 2rem; font-size: 0.9rem; font-family: 'Outfit', sans-serif; cursor: pointer; border-radius: 0.5rem; border: none; }
+    .btn-print { background: #1E3A8A; color: #fff; margin-right: 0.5rem; }
+    .btn-close { background: #E2E8F0; color: #475569; }
+    @media print {
+      body { padding: 1.5rem; }
+      .no-print { display: none; }
+      @page { margin: 2cm; }
+    }
+  </style>
+</head>
+<body>
+  <h1>LAPORAN UPAH MINIMUM INDONESIA</h1>
+  <div class="subtitle">Data Resmi Peraturan Menteri Ketenagakerjaan Tahun 2024</div>
+  <div class="date">EqualWork &mdash; Dicetak pada: ${dateStr}</div>
+
+  <h2>A. Upah Minimum Provinsi (UMP) 2024</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:45%;">Provinsi</th>
+        <th style="width:30%; text-align:right;">UMP 2024</th>
+        <th style="width:25%; text-align:right;">Kenaikan</th>
+      </tr>
+    </thead>
+    <tbody>${umpRows}</tbody>
+  </table>
+
+  <h2>B. Upah Minimum Kabupaten/Kota (UMK) 2024</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40%;">Kabupaten / Kota</th>
+        <th style="width:30%;">Provinsi</th>
+        <th style="width:30%; text-align:right;">UMK 2024</th>
+      </tr>
+    </thead>
+    <tbody>${umkRows}</tbody>
+  </table>
+
+  <h2>C. Perbandingan Upah Minimum ASEAN</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40%;">Negara</th>
+        <th style="width:60%; text-align:right;">Nilai Upah</th>
+      </tr>
+    </thead>
+    <tbody>${aseanRows}</tbody>
+  </table>
+
+  <div class="footer">
+    Data bersumber dari Peraturan Menteri Ketenagakerjaan RI dan Badan Pusat Statistik (BPS) Tahun 2024<br>
+    Dihasilkan oleh EqualWork &mdash; Dashboard Transparansi Ketenagakerjaan & Kesetaraan Gender<br>
+    Dicetak pada: ${dateStr}
+  </div>
+
+  <div class="no-print">
+    <button class="btn-print" onclick="window.print()"><i class="fas fa-download"></i> Cetak / Simpan PDF</button>
+    <button class="btn-close" onclick="window.close()">Tutup</button>
+  </div>
+
+  <script>
+    setTimeout(function() { window.print(); }, 600);
+    window.onafterprint = function() { setTimeout(function() { window.close(); }, 500); };
+  <\/script>
+</body>
+</html>`);
+    printWin.document.close();
   });
 }
 
@@ -1845,32 +2214,73 @@ function initAllRegulationsArchive() {
       if (idx === 0) {
         card.classList.add("active");
         activeRegId = item.id;
-        loadActiveRegulation(item);
+        if (window.innerWidth > 768) {
+          loadActiveRegulation(item);
+        }
       }
     });
   };
 
   const loadActiveRegulation = (item) => {
-    document.getElementById("archiveContentPlaceholder").style.display = "none";
-    document.getElementById("archiveContentArea").style.display = "block";
+    const isMobile = window.innerWidth <= 768;
 
-    const tagEl = document.getElementById("archiveActiveTag");
-    tagEl.innerText = item.tag;
-    
-    let badgeClass = "badge-primary";
-    if (item.type === "kesetaraan-gender") badgeClass = "badge-accent";
-    else if (item.type === "upah") badgeClass = "badge-success";
-    
-    tagEl.className = `archive-item-tag badge ${badgeClass}`;
-    document.getElementById("archiveActiveTitle").innerText = item.title;
-    document.getElementById("archiveActiveNumber").innerText = item.number;
-    document.getElementById("archiveActiveBody").innerHTML = item.content;
+    if (isMobile) {
+      // Mobile: populate detail modal instead of inline panel
+      const tagEl = document.getElementById("archiveDetailTag");
+      tagEl.innerText = item.tag;
+
+      let badgeClass = "badge-primary";
+      if (item.type === "kesetaraan-gender") badgeClass = "badge-accent";
+      else if (item.type === "upah") badgeClass = "badge-success";
+
+      tagEl.className = `archive-item-tag badge ${badgeClass}`;
+      document.getElementById("archiveDetailTitle").innerText = item.title;
+      document.getElementById("archiveDetailNumber").innerText = item.number;
+      document.getElementById("archiveDetailBody").innerHTML = formatRegulationContent(item.content);
+
+      closeModal("allRegulationsModal");
+      openModal("archiveDetailModal");
+    } else {
+      // Desktop: existing inline panel behavior
+      document.getElementById("archiveContentPlaceholder").style.display = "none";
+      document.getElementById("archiveContentArea").style.display = "block";
+
+      const tagEl = document.getElementById("archiveActiveTag");
+      tagEl.innerText = item.tag;
+
+      let badgeClass = "badge-primary";
+      if (item.type === "kesetaraan-gender") badgeClass = "badge-accent";
+      else if (item.type === "upah") badgeClass = "badge-success";
+
+      tagEl.className = `archive-item-tag badge ${badgeClass}`;
+      document.getElementById("archiveActiveTitle").innerText = item.title;
+      document.getElementById("archiveActiveNumber").innerText = item.number;
+      document.getElementById("archiveActiveBody").innerHTML = formatRegulationContent(item.content);
+    }
   };
 
   // Search filter keyup listener
   searchInput.addEventListener("input", (e) => {
     renderArchiveList(e.target.value);
   });
+
+  // Mobile: close detail modal → reopen list modal
+  const detailModal = document.getElementById("archiveDetailModal");
+  if (detailModal) {
+    detailModal.querySelectorAll(".modal-close-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeModal("archiveDetailModal");
+        openModal("allRegulationsModal");
+      });
+    });
+    detailModal.addEventListener("click", (e) => {
+      if (e.target === detailModal) {
+        closeModal("archiveDetailModal");
+        openModal("allRegulationsModal");
+      }
+    });
+  }
 
   // Open modal event trigger
   archiveBtn.addEventListener("click", () => {
@@ -1882,7 +2292,7 @@ function initAllRegulationsArchive() {
     renderArchiveList("");
     searchInput.value = "";
     
-    if (REGULATIONS_DB[0]) {
+    if (REGULATIONS_DB[0] && window.innerWidth > 768) {
       loadActiveRegulation(REGULATIONS_DB[0]);
     }
   });
@@ -2054,245 +2464,20 @@ function renderAdminTables() {
   });
 }
 
-// Publish Article Modal Form Logic
-function initWriteArticle() {
-  const writeBtn = document.getElementById("openWriteArticleBtn");
-  const modal = document.getElementById("publishArticleModal");
-  const form = document.getElementById("writeArticleForm");
-  const dateInput = document.getElementById("artDate");
+/* ================= LIVE ARTICLE SIMULATION (DINONAKTIFKAN) =================
+ * Fitur ini telah dihapus. Artikel hanya dapat ditambahkan secara manual
+ * oleh penulis melalui form "Tulis Artikel Baru", bukan disimulasikan otomatis.
+ *
+ * Data pool dan fungsi initLiveArticleFeed() di bawah ini diarsipkan (tidak berjalan).
+ * ============================================================================ */
 
-  if (!writeBtn || !modal || !form) return;
-
-  // Open Modal Event
-  writeBtn.addEventListener("click", () => {
-    form.reset();
-    
-    // Set current date in Indonesian format
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    const todayStr = new Date().toLocaleDateString('id-ID', options);
-    if (dateInput) dateInput.value = todayStr;
-
-    openModal("publishArticleModal");
-  });
-
-  // Form submit handler
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const title = document.getElementById("artTitle").value.trim();
-    const category = document.getElementById("artCategory").value;
-    const author = document.getElementById("artAuthor").value.trim();
-    const time = document.getElementById("artTime").value.trim();
-    const date = dateInput.value;
-    const desc = document.getElementById("artDesc").value.trim();
-    const body = document.getElementById("artBody").value.trim();
-
-    const newId = "art-" + (ARTICLES_DB.length + 1);
-
-    // Push new article to the front of list
-    ARTICLES_DB.unshift({
-      id: newId,
-      title: title,
-      category: category,
-      date: date,
-      author: author,
-      time: time,
-      desc: desc,
-      body: body,
-      isNew: true
-    });
-
-    closeModal("publishArticleModal");
-    showToast("Artikel baru berhasil diterbitkan secara live!", "success");
-
-    // Dynamic refresh of article grid
-    if (typeof window.refreshArticleGrid === "function") {
-      // Sync with active filter or just reset to 'semua'
-      const activeFilterBtn = document.querySelector(".article-filters .tab-btn.active");
-      if (activeFilterBtn) {
-        document.querySelectorAll(".article-filters .tab-btn").forEach(b => b.classList.remove("active"));
-        const allBtn = document.querySelector('.article-filters .tab-btn[data-article-filter="semua"]');
-        if (allBtn) allBtn.classList.add("active");
-      }
-      window.refreshArticleGrid("semua");
-    }
-  });
-}
-
-// ================= LIVE ARTICLE SIMULATION =================
-const SIMULATED_ARTICLES_POOL = [
-  {
-    title: "Pentingnya Perlindungan Hak Maternal dalam RUU Kesejahteraan Ibu dan Anak (KIA)",
-    category: "Kesetaraan",
-    author: "Kartini Mulia, M.Si",
-    time: "5 min baca",
-    desc: "Sorotan kritis draf terbaru RUU KIA 2024 yang mengatur tentang hak cuti melahirkan 6 bulan bagi ibu menyusui dan kewajiban pendampingan bagi ayah.",
-    body: `
-      <p>Rancangan Undang-Undang Kesejahteraan Ibu dan Anak (RUU KIA) pada Fase Seribu Hari Pertama Kehidupan telah resmi disahkan menjadi Undang-Undang. Langkah legislatif ini membawa angin segar bagi perlindungan hak keibuan di Indonesia.</p>
-      <p><strong>Poin Kunci Perlindungan Hak Maternal:</strong></p>
-      <ul>
-        <li>**Perpanjangan Cuti Melahirkan:** Cuti melahirkan paling sedikit 3 bulan pertama, dan dapat diperpanjang hingga maksimal 6 bulan jika terdapat kondisi khusus medis ibu atau bayi yang dibuktikan dengan surat dokter.</li>
-        <li>**Jaminan Upah Tetap:** Ibu yang mengambil cuti melahirkan tidak boleh diberhentikan (di-PHK) dan berhak mendapatkan upah penuh untuk 3 bulan pertama, dan 75% upah untuk bulan keempat s.d. keenam.</li>
-        <li>**Paternity Leave (Cuti Suami):** Suami berhak mendapatkan cuti pendampingan melahirkan selama 2 hari, dan dapat diberikan tambahan hingga 3 hari berikutnya sesuai kesepakatan dengan pemberi kerja.</li>
-      </ul>
-      <p>Kebijakan ini diharapkan mampu mengikis stigma bias gender di mana memiliki anak dianggap membebani ekonomi perusahaan, melainkan sebagai investasi sosial bangsa.</p>
-    `
-  },
-  {
-    title: "Aturan Lembur bagi Pekerja Perempuan: Batasan Jam dan Hak yang Wajib Terpenuhi",
-    category: "Tips Hukum",
-    author: "Faisal Bakri, SH",
-    time: "5 min baca",
-    desc: "Banyak buruh perempuan dipaksa kerja lembur tanpa bayaran yang layak dan jaminan keselamatan. Pelajari hak lembur resmi Anda sesuai regulasi.",
-    body: `
-      <p>Kerja lembur merupakan waktu kerja yang melebihi 7 jam sehari (untuk 6 hari kerja seminggu) atau 8 jam sehari (untuk 5 hari kerja seminggu). Bagi pekerja perempuan, terdapat batas perlindungan tambahan demi menjaga keselamatan fisik mereka.</p>
-      <p><strong>Syarat Kerja Lembur Resmi:</strong></p>
-      <ul>
-        <li>**Persetujuan Tertulis:** Harus ada perintah tertulis dari pengusaha dan persetujuan tertulis dari pekerja bersangkutan (tidak boleh dipaksa sepihak).</li>
-        <li>**Batasan Waktu:** Waktu kerja lembur hanya dapat dilakukan paling banyak 4 jam dalam 1 hari dan 18 jam dalam 1 minggu (di luar lembur hari libur resmi).</li>
-        <li>**Upah Lembur Wajib:** Pengusaha wajib membayar upah kerja lembur sesuai perhitungan resmi Kepmenakertrans No. 102/2004 (jam pertama 1.5x upah sejam, jam berikutnya 2x upah sejam).</li>
-      </ul>
-      <p>Jika perusahaan Anda melakukan pelanggaran pemaksaan lembur malam tanpa persetujuan atau menolak membayar hak upah lembur secara kumulatif, segera laporkan kasus ini lewat portal Pengaduan EqualWork.</p>
-    `
-  },
-  {
-    title: "Membangun Ekosistem Kerja Inklusif untuk Disabilitas: Peran Perusahaan dan Hak Karyawan",
-    category: "Karir",
-    author: "Prasetyo Utomo",
-    time: "6 min baca",
-    desc: "Membahas implementasi kuota kerja 1% bagi penyandang disabilitas di sektor swasta serta penyediaan aksesibilitas fisik & non-fisik di lingkungan kerja.",
-    body: `
-      <p>Inklusivitas di dunia kerja tidak hanya mencakup kesetaraan gender, tetapi juga pemenuhan hak-hak pekerja penyandang disabilitas demi menciptakan lingkungan profesional yang setara dan bermartabat.</p>
-      <p><strong>Kewajiban Kuota Ketenagakerjaan:</strong></p>
-      <p>Berdasarkan <strong>Undang-Undang Nomor 8 Tahun 2016 tentang Penyandang Disabilitas</strong>, pemerintah, pemerintah daerah, BUMN, dan BUMD wajib mempekerjakan paling sedikit 2% penyandang disabilitas dari jumlah seluruh pekerja. Sementara untuk perusahaan swasta, wajib mempekerjakan paling sedikit 1% penyandang disabilitas.</p>
-      <p><strong>Penyediaan Akomodasi yang Layak:</strong></p>
-      <ul>
-        <li>**Aksesibilitas Fisik:** Jalur landai (ramp) kursi roda, toilet ramah disabilitas, serta signage huruf Braille.</li>
-        <li>**Aksesibilitas Digital:** Aplikasi pembaca layar (screen reader) untuk tunanetra dan caption teks untuk tunarungu dalam pertemuan virtual.</li>
-        <li>**Kebijakan Jam Kerja Fleksibel:** Penyesuaian jam kerja untuk terapi atau pemeriksaan medis rutin tanpa pemotongan upah berkala.</li>
-      </ul>
-      <p>Inklusi disabilitas terbukti memperkaya perspektif inovasi perusahaan serta menciptakan kultur kerja empati yang produktif bagi semua karyawan.</p>
-    `
-  },
-  {
-    title: "Mengapa Pembagian Beban Kerja Domestik Berdampak Langsung pada Kenaikan Upah Karyawati",
-    category: "Kesetaraan",
-    author: "Santi Dewanti, M.A",
-    time: "5 min baca",
-    desc: "Menganalisis 'double burden' atau beban ganda yang dipikul ibu bekerja dan bagaimana pembagian tugas rumah tangga dapat membantu meningkatkan produktivitas karir.",
-    body: `
-      <p>Beban ganda (*double burden*) merujuk pada situasi di mana perempuan harus memikul tanggung jawab penuh pekerjaan domestik rumah tangga sekaligus bekerja mencari nafkah di luar rumah. Ketimpangan ini berkontribusi langsung pada terhambatnya kenaikan upah perempuan di kantor.</p>
-      <p><strong>Hubungan Beban Domestik dengan Hambatan Upah:</strong></p>
-      <ul>
-        <li>**Kelelahan Fisik & Mental:** Memulai pekerjaan kantor dengan sisa energi pasca mengurus pekerjaan rumah tangga sejak fajar menurunkan konsentrasi dan kinerja produktif di siang hari.</li>
-        <li>**Keterbatasan Overtime & Networking:** Pekerja perempuan sering terpaksa menolak lembur mendadak atau networking setelah jam kantor karena harus bergegas pulang mengurus anak, sehingga kehilangan poin penilaian promosi penting.</li>
-        <li>**Bias Penugasan:** Atasan sering enggan menugaskan dinas luar kota jangka panjang pada karyawati berkeluarga dengan asumsi urusan domestik mereka akan terbengkalai.</li>
-      </ul>
-      <p><strong>Solusi Kemitraan Keluarga:</strong> Pembagian tugas domestik yang setara antara suami dan istri bukan sekadar bantuan sukarela, melainkan prasyarat mutlak demi pertumbuhan karir profesional perempuan yang berkelanjutan.</p>
-    `
-  },
-  {
-    title: "Negosiasi Gaji secara Profesional: Tips Sukses untuk Pekerja Perempuan",
-    category: "Karir",
-    author: "Vina Aprillia, HR Consultant",
-    time: "6 min baca",
-    desc: "Perempuan secara statistik jarang menegosiasikan tawaran gaji pertama mereka. Pelajari riset pasar, penyusunan portofolio, dan taktik verbal yang asertif.",
-    body: `
-      <p>Kesenjangan upah gender sering kali berakar sejak hari pertama rekrutmen. Banyak kandidat perempuan menerima tawaran gaji pertama tanpa negosiasi karena khawatir dicap 'tidak kooperatif' atau kehilangan tawaran pekerjaan.</p>
-      <p><strong>Panduan Taktik Negosiasi Gaji:</strong></p>
-      <ol>
-        <li>**Lakukan Riset Pasar:** Cari tahu standar gaji untuk posisi serupa di daerah Anda (Gunakan data dashboard UMK dan Simulator Pabrik EqualWork sebagai referensi valid).</li>
-        <li>**Fokus pada Value Proposition:** Jangan mendasarkan permintaan gaji pada kebutuhan pribadi (seperti cicilan), melainkan pada kontribusi kuantitatif dan kualitatif yang dapat Anda berikan bagi profit perusahaan.</li>
-        <li>**Latihan Komunikasi Asertif:** Gunakan frasa positif seperti: <em>'Berdasarkan riset pasar dan keahlian sertifikasi yang saya miliki, saya menargetkan kisaran kompensasi di angka RpX...'</em></li>
-      </ol>
-      <p>Ingat, melakukan negosiasi gaji secara sopan dan terukur mencerminkan profesionalisme tinggi dan kesadaran diri akan nilai kompetensi kerja Anda.</p>
-    `
-  },
-  {
-    title: "Kontrak Kerja PKWT vs PKWTT: Mengenal Hak Jaminan Sosial bagi Pekerja Perempuan",
-    category: "Tips Hukum",
-    author: "Hendra Wijaya, SH",
-    time: "6 min baca",
-    desc: "Banyak perusahaan menyalahgunakan status kontrak PKWT berulang untuk menghindari pembayaran hak maternitas. Pelajari perbedaan hak perlindungannya.",
-    body: `
-      <p>Status kepegawaian sangat menentukan jenis hak ketenagakerjaan yang wajib diterima oleh karyawan. Sayangnya, pekerja perempuan kerap kali terjebak dalam status PKWT (kontrak harian/bulanan) berulang yang rentan eksploitasi.</p>
-      <p><strong>Perbandingan Hak Jaminan Sosial:</strong></p>
-      <ul>
-        <li>**PKWT (Perjanjian Kerja Waktu Tertentu):** Pekerja kontrak tetap berhak atas jaminan kesehatan (BPJS Kesehatan), jaminan kecelakaan kerja (JKK), dan jaminan hari tua (JHT). Sejak UU Cipta Kerja berlaku, pekerja PKWT juga berhak atas **Uang Kompensasi** di akhir masa kontrak.</li>
-        <li>**PKWTT (Perjanjian Kerja Waktu Tidak Tertentu):** Sebagai karyawan tetap, mereka mendapatkan perlindungan penuh termasuk pesangon PHK, uang penghargaan masa kerja, serta hak cuti melahirkan 3-6 bulan berbayar tanpa risiko pemberhentian kontrak di tengah jalan.</li>
-      </ul>
-      <p>Perusahaan sering memperlakukan pekerja PKWT perempuan seperti pekerja lepas tanpa tunjangan keluarga. Jika Anda menemui manipulasi kontrak berulang yang tidak sah secara hukum, konsultasikan segera lewat LBH Mitra EqualWork.</p>
-    `
-  }
-];
+// CATATAN: SIMULATED_ARTICLES_POOL dihapus. Gunakan form "Tulis Artikel Baru"
+// untuk menambahkan artikel baru secara manual berdasarkan referensi jurnal.
 
 function initLiveArticleFeed() {
-  const simBtn = document.getElementById("simulateNewArticleBtn");
-  const spinIcon = document.getElementById("simulateSpinIcon");
-  if (!simBtn) return;
-
-  let simulatedArticleIndex = 0;
-
-  const triggerSimulation = () => {
-    if (simulatedArticleIndex >= SIMULATED_ARTICLES_POOL.length) {
-      showToast("Semua artikel dalam bank simulasi telah diterbitkan!", "info");
-      return;
-    }
-
-    const template = SIMULATED_ARTICLES_POOL[simulatedArticleIndex];
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    const dateStr = new Date().toLocaleDateString('id-ID', options);
-    
-    const newArt = {
-      id: "sim-" + Date.now(),
-      title: template.title,
-      category: template.category,
-      date: dateStr,
-      author: template.author,
-      time: template.time,
-      desc: template.desc,
-      body: template.body,
-      isNew: true
-    };
-
-    // Prepend to database
-    ARTICLES_DB.unshift(newArt);
-    simulatedArticleIndex++;
-
-    // Switch filters tab to "semua" so the new article is visible
-    const allBtn = document.querySelector('.article-filters .tab-btn[data-article-filter="semua"]');
-    if (allBtn) {
-      document.querySelectorAll(".article-filters .tab-btn").forEach(b => b.classList.remove("active"));
-      allBtn.classList.add("active");
-    }
-
-    // Refresh grid
-    if (typeof window.refreshArticleGrid === "function") {
-      window.refreshArticleGrid("semua");
-    }
-
-    // Show toast notification
-    showToast(`Notifikasi Live Feed: Artikel Baru Diterbitkan - "${newArt.title}"`, "success");
-  };
-
-  // Click handler
-  simBtn.addEventListener("click", () => {
-    if (spinIcon) {
-      spinIcon.classList.add("fa-spin");
-      setTimeout(() => spinIcon.classList.remove("fa-spin"), 800);
-    }
-    triggerSimulation();
-  });
-
-  // Background Automatic Scheduler: Every 45 seconds publish a new article automatically
-  const intervalId = setInterval(() => {
-    // Only auto-publish if we haven't exhausted the pool
-    if (simulatedArticleIndex < SIMULATED_ARTICLES_POOL.length) {
-      triggerSimulation();
-    } else {
-      clearInterval(intervalId);
-    }
-  }, 45000);
+  // Fungsi ini dinonaktifkan. Simulasi otomatis dihapus.
+  // Artikel hanya bisa ditambahkan melalui form manual oleh penulis.
+  return;
 }
 
 function initRegister() {
@@ -2341,5 +2526,55 @@ function initRegister() {
       openModal("loginModal");
     }, 800);
   });
+}
+
+function initLoaderScreen() {
+  const loader = document.getElementById("loaderOverlay");
+  const barFill = document.getElementById("loaderBarFill");
+  const barHead = document.getElementById("loaderBarHead");
+  if (!loader) return;
+
+  let progress = 0;
+  const advance = () => {
+    progress += Math.floor(Math.random() * 8) + 2;
+    if (progress > 100) progress = 100;
+    if (barFill) barFill.style.width = progress + "%";
+    if (barHead) {
+      barHead.style.left = progress + "%";
+      if (progress > 0) barHead.classList.add("active");
+    }
+    if (progress < 100) {
+      setTimeout(advance, Math.floor(Math.random() * 50) + 30);
+    } else {
+      setTimeout(done, 400);
+    }
+  };
+
+  const done = () => {
+    const GSAP = window.gsap;
+    if (GSAP) {
+      GSAP.to(loader, {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.out",
+        onComplete: () => {
+          loader.style.display = "none";
+          if (typeof window.triggerHeroEntrance === "function") {
+            window.triggerHeroEntrance();
+          }
+        }
+      });
+    } else {
+      loader.style.opacity = 0;
+      setTimeout(() => {
+        loader.style.display = "none";
+        if (typeof window.triggerHeroEntrance === "function") {
+          window.triggerHeroEntrance();
+        }
+      }, 500);
+    }
+  };
+
+  setTimeout(advance, 200);
 }
 
