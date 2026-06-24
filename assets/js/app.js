@@ -327,11 +327,15 @@ const UMK_2024_DB = {
 // ASEAN Country Minimum Wage Comparisons (in IDR Equivalents for visualization)
 const ASEAN_WAGES_DB = [
   { country: "Singapura", wage: 45000000, valStr: "Rp 45,000,000 (Rata-rata)", barWidth: 100, highlight: false },
+  { country: "Brunei", wage: 5400000, valStr: "BND 2.62/jam (~Rp 5.4 Juta)", barWidth: 37, highlight: false },
   { country: "Malaysia", wage: 5120000, valStr: "RM 1,500 (~Rp 5.1 Juta)", barWidth: 35, highlight: false },
   { country: "Thailand", wage: 4680000, valStr: "฿ 10,500 (~Rp 4.6 Juta)", barWidth: 32, highlight: false },
+  { country: "Kamboja", wage: 3400000, valStr: "USD 210 (~Rp 3.4 Juta)", barWidth: 28, highlight: false },
   { country: "Indonesia", wage: 3115000, valStr: "Rp 3,115,000 (Rerata Nas.)", barWidth: 26, highlight: true },
   { country: "Vietnam", wage: 3050000, valStr: "₫ 4,680,000 (~Rp 3.0 Juta)", barWidth: 24, highlight: false },
-  { country: "Filipina", wage: 2940000, valStr: "₱ 10,200 (~Rp 2.9 Juta)", barWidth: 23, highlight: false }
+  { country: "Filipina", wage: 2940000, valStr: "₱ 10,200 (~Rp 2.9 Juta)", barWidth: 23, highlight: false },
+  { country: "Laos", wage: 1850000, valStr: "LAK 2.5 Jt (~Rp 1.85 Juta)", barWidth: 18, highlight: false },
+  { country: "Myanmar", wage: 1800000, valStr: "MMK 7,800/hari (~Rp 1.8 Juta)", barWidth: 17, highlight: false }
 ];
 
 const ARTICLES_DB = [
@@ -819,6 +823,198 @@ function openRegulationModal(id) {
   openModal("regulationModal");
 }
 
+// Google GeoChart Loader for ASEAN Map
+let googleChartsLoaded = false;
+let aseanGeochart = null;
+
+if (typeof google !== 'undefined' && google.charts) {
+  google.charts.load('current', {'packages':['geochart']});
+  google.charts.setOnLoadCallback(() => {
+    googleChartsLoaded = true;
+    const activeTabBtn = document.querySelector(".wage-hub-tab-btn.active");
+    const activeTabId = activeTabBtn ? activeTabBtn.getAttribute("data-tab") : "";
+    if (activeTabId === "hub-asean") {
+      drawAseanMapChart();
+    }
+  });
+}
+
+window.addEventListener("resize", () => {
+  const activeTabBtn = document.querySelector(".wage-hub-tab-btn.active");
+  const activeTabId = activeTabBtn ? activeTabBtn.getAttribute("data-tab") : "";
+  if (activeTabId === "hub-asean" && googleChartsLoaded) {
+    drawAseanMapChart();
+  }
+});
+
+function drawAseanMapChart() {
+  if (!googleChartsLoaded) return;
+  const container = document.getElementById("mapAsean");
+  if (!container) return;
+
+  const data = new google.visualization.DataTable();
+  data.addColumn('string', 'Country');
+  data.addColumn('number', 'Upah Minimum (IDR)');
+  data.addColumn({type: 'string', role: 'tooltip', p: {html: true}});
+
+  // Maps ASEAN countries to ISO codes for the GeoChart
+  const countryISOMapping = {
+    "Singapura": "SG",
+    "Brunei": "BN",
+    "Malaysia": "MY",
+    "Thailand": "TH",
+    "Kamboja": "KH",
+    "Indonesia": "ID",
+    "Vietnam": "VN",
+    "Filipina": "PH",
+    "Laos": "LA",
+    "Myanmar": "MM"
+  };
+
+  const rows = [];
+  ASEAN_WAGES_DB.forEach(item => {
+    const isoCode = countryISOMapping[item.country];
+    if (isoCode) {
+      const tooltipHtml = `
+        <div style="padding: 0.75rem; font-family: 'Outfit', sans-serif; font-size: 0.8125rem; line-height: 1.4; color: #0F172A; background-color: #FFFFFF; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #E2E8F0;">
+          <strong style="font-size: 0.875rem; color: #1E40AF;">${item.country}</strong><br/>
+          <span style="font-weight: 600; color: #475569;">Upah Minimum:</span> <span style="font-weight: 700; color: #10B981;">${item.valStr}</span>
+        </div>
+      `;
+      rows.push([isoCode, item.wage, tooltipHtml]);
+    }
+  });
+
+  data.addRows(rows);
+
+  const options = {
+    region: '035', // Southeast Asia
+    displayMode: 'regions',
+    resolution: 'countries',
+    colorAxis: {
+      colors: ['#EFF6FF', '#3B82F6', '#1E40AF'] // primary-pastel, primary-light, primary
+    },
+    backgroundColor: '#FFFFFF',
+    datalessRegionColor: '#F1F5F9',
+    defaultColor: '#CBD5E1',
+    tooltip: { isHtml: true, trigger: 'focus' },
+    keepAspectRatio: true,
+    width: '100%',
+    height: '100%'
+  };
+
+  if (!aseanGeochart) {
+    aseanGeochart = new google.visualization.GeoChart(container);
+    
+    google.visualization.events.addListener(aseanGeochart, 'select', () => {
+      const selection = aseanGeochart.getSelection();
+      if (selection.length > 0) {
+        const row = selection[0].row;
+        const isoCode = rows[row][0];
+        const countryName = Object.keys(countryISOMapping).find(key => countryISOMapping[key] === isoCode);
+        const countryData = ASEAN_WAGES_DB.find(item => item.country === countryName);
+        if (countryData) {
+          showToast(`Negara: ${countryData.country}, Upah Minimum: ${countryData.valStr}`, "info");
+        }
+      }
+    });
+  }
+
+  // Draw Singapore marker dynamically aligned with the GeoCharts SVG element
+  google.visualization.events.addListener(aseanGeochart, 'ready', () => {
+    let posX = "23.5%";
+    let posY = "70.5%";
+
+    const elements = container.querySelectorAll("path, circle, rect");
+    let sgElement = null;
+    elements.forEach(el => {
+      const name = el.getAttribute("logicalname") || el.getAttribute("region") || el.id || "";
+      if (name.toUpperCase() === "SG" || name.toUpperCase() === "SINGAPORE") {
+        sgElement = el;
+      }
+    });
+
+    if (sgElement) {
+      const rect = sgElement.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      if (rect.width > 0 && containerRect.width > 0) {
+        const x = ((rect.left - containerRect.left + (rect.width / 2)) / containerRect.width) * 100;
+        const y = ((rect.top - containerRect.top + (rect.height / 2)) / containerRect.height) * 100;
+        if (x > 0 && y > 0) {
+          posX = `${x}%`;
+          posY = `${y}%`;
+        }
+      }
+    }
+
+    let sgMarker = document.getElementById("geochart-sg-marker");
+    if (!sgMarker) {
+      sgMarker = document.createElement("div");
+      sgMarker.id = "geochart-sg-marker";
+      sgMarker.style.position = "absolute";
+      sgMarker.style.width = "10px";
+      sgMarker.style.height = "10px";
+      sgMarker.style.borderRadius = "50%";
+      sgMarker.style.backgroundColor = "var(--danger)"; // Bright red color to make it clear and highlight focus
+      sgMarker.style.border = "1.5px solid #FFFFFF";
+      sgMarker.style.cursor = "pointer";
+      sgMarker.style.boxShadow = "0 0 6px rgba(239, 68, 68, 0.6)";
+      sgMarker.style.zIndex = "10";
+      sgMarker.title = "Singapura (Klik untuk detail)";
+
+      // Add pulsing rings overlay using existing pulse-ring keyframes
+      sgMarker.innerHTML = `
+        <div class="marker-pulse" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; border: 3px solid var(--danger); box-sizing: border-box;"></div>
+      `;
+
+      // Tooltip and Click logic matching rest of map regions
+      const tooltip = document.getElementById("mapTooltip");
+      
+      sgMarker.addEventListener("mouseenter", (e) => {
+        const countryData = ASEAN_WAGES_DB.find(item => item.country === "Singapura");
+        if (countryData && tooltip) {
+          tooltip.innerHTML = `
+            <strong>Singapura</strong><br/>
+            Upah Minimum: ${countryData.valStr}
+          `;
+          tooltip.style.opacity = 1;
+        }
+      });
+
+      sgMarker.addEventListener("mousemove", (e) => {
+        if (tooltip) {
+          const mapWrapper = document.querySelector(".map-wrapper");
+          const wrapperRect = mapWrapper.getBoundingClientRect();
+          const x = e.clientX - wrapperRect.left - (tooltip.offsetWidth / 2);
+          const y = e.clientY - wrapperRect.top - tooltip.offsetHeight - 15;
+          tooltip.style.left = `${x}px`;
+          tooltip.style.top = `${y}px`;
+        }
+      });
+
+      sgMarker.addEventListener("mouseleave", () => {
+        if (tooltip) tooltip.style.opacity = 0;
+      });
+
+      sgMarker.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const countryData = ASEAN_WAGES_DB.find(item => item.country === "Singapura");
+        if (countryData) {
+          showToast(`Negara: Singapura, Upah Minimum: ${countryData.valStr}`, "info");
+        }
+      });
+
+      container.appendChild(sgMarker);
+    }
+
+    // Set position dynamically
+    sgMarker.style.left = posX;
+    sgMarker.style.top = posY;
+  });
+
+  aseanGeochart.draw(data, options);
+}
+
 // 4. Upah Minimum Indonesia (Wage Hub - UMP, UMK, ASEAN, Simulator)
 function initWagesSection() {
   const mapPaths = document.querySelectorAll(".map-region");
@@ -1005,32 +1201,60 @@ function initWagesSection() {
     }
   };
 
-  // Render ASEAN Comparative Charts
-  const renderASEANChart = () => {
-    const chartWrapper = document.querySelector("#aseanCompChart");
-    if (!chartWrapper) return;
+  // Render ASEAN Countries Table List
+  const renderASEANTable = (searchQuery = "", page = 1) => {
+    const aseanTableBody = document.querySelector("#aseanTableBody");
+    const aseanSearchInput = document.querySelector("#aseanSearch");
+    if (!aseanTableBody) return;
 
-    chartWrapper.innerHTML = "";
-    ASEAN_WAGES_DB.forEach(item => {
-      const barRow = document.createElement("div");
-      barRow.className = "asean-bar-row";
-      barRow.innerHTML = `
-        <span class="asean-bar-name">${item.country}</span>
-        <div class="asean-bar-container">
-          <div class="asean-bar-fill ${item.highlight ? 'highlight' : ''}" style="width: 0%;" data-width="${item.barWidth}%"></div>
-        </div>
-        <span class="asean-bar-val">${item.valStr}</span>
+    aseanTableBody.innerHTML = "";
+    const query = searchQuery.trim().toLowerCase();
+
+    let filteredData = ASEAN_WAGES_DB.filter(item => 
+      item.country.toLowerCase().includes(query)
+    );
+
+    if (filteredData.length === 0) {
+      aseanTableBody.innerHTML = `<tr><td colspan="3" class="text-center" style="padding:2rem;">Negara tidak ditemukan</td></tr>`;
+      const pagContainer = document.getElementById("aseanPagination");
+      if (pagContainer) pagContainer.style.display = "none";
+      return;
+    }
+
+    // Paginate ASEAN data (5 items per page)
+    const totalItems = filteredData.length;
+    const itemsPerPage = 5;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    let currentPage = Math.max(1, Math.min(page, totalPages));
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+
+    paginatedData.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.className = "table-row-hover";
+      if (item.highlight) {
+        tr.style.backgroundColor = "rgba(16, 185, 129, 0.08)";
+      }
+      tr.innerHTML = `
+        <td style="font-weight: 600; color:var(--text-dark);">${item.country} ${item.highlight ? '<span class="badge badge-success" style="margin-left: 0.5rem; font-size: 0.65rem; padding: 0.15rem 0.35rem;">INDONESIA</span>' : ''}</td>
+        <td style="font-weight: 700; color: var(--primary-dark);">${formatRupiah(item.wage)}</td>
+        <td>${item.valStr}</td>
       `;
-      chartWrapper.appendChild(barRow);
+      aseanTableBody.appendChild(tr);
     });
 
-    // Trigger loading width animation
-    setTimeout(() => {
-      const bars = chartWrapper.querySelectorAll(".asean-bar-fill");
-      bars.forEach(b => {
-        b.style.width = b.getAttribute("data-width");
+    // Render ASEAN Pagination
+    setupPagination("aseanPagination", totalItems, itemsPerPage, currentPage, (newPage) => {
+      renderASEANTable(searchQuery, newPage);
+    });
+
+    // Bind local ASEAN search keyup
+    if (aseanSearchInput && !aseanSearchInput.dataset.bound) {
+      aseanSearchInput.addEventListener("input", (e) => {
+        renderASEANTable(e.target.value, 1);
       });
-    }, 100);
+      aseanSearchInput.dataset.bound = "true";
+    }
   };
 
   // Interactive Map Event Listeners
@@ -1039,15 +1263,27 @@ function initWagesSection() {
     const regionName = path.getAttribute("data-name");
 
     path.addEventListener("mouseenter", (e) => {
+      if (regionId && regionId.startsWith("asean_")) {
+        const countryData = ASEAN_WAGES_DB.find(item => item.country === regionName);
+        if (countryData) {
+          tooltip.innerHTML = `
+            <strong>${regionName}</strong><br/>
+            Upah Minimum: ${countryData.valStr}
+          `;
+          tooltip.style.opacity = 1;
+        }
+        return;
+      }
       // Calculate region average wage
       const regionData = UMP_2024_DB.filter(item => item.region === regionId);
-      const avgWage = regionData.reduce((acc, curr) => acc + curr.wage, 0) / regionData.length;
-      
-      tooltip.innerHTML = `
-        <strong>${regionName}</strong><br/>
-        Rerata UMP: ${formatRupiah(Math.round(avgWage))}
-      `;
-      tooltip.style.opacity = 1;
+      if (regionData.length > 0) {
+        const avgWage = regionData.reduce((acc, curr) => acc + curr.wage, 0) / regionData.length;
+        tooltip.innerHTML = `
+          <strong>${regionName}</strong><br/>
+          Rerata UMP: ${formatRupiah(Math.round(avgWage))}
+        `;
+        tooltip.style.opacity = 1;
+      }
     });
 
     path.addEventListener("mousemove", (e) => {
@@ -1064,7 +1300,20 @@ function initWagesSection() {
     });
 
     path.addEventListener("click", () => {
-      mapPaths.forEach(p => p.classList.remove("active"));
+      if (regionId && regionId.startsWith("asean_")) {
+        const countryData = ASEAN_WAGES_DB.find(item => item.country === regionName);
+        if (countryData) {
+          showToast(`Negara: ${regionName}, Upah Minimum: ${countryData.valStr}`, "info");
+        }
+        return;
+      }
+
+      mapPaths.forEach(p => {
+        const pId = p.getAttribute("id");
+        if (pId && !pId.startsWith("asean_")) {
+          p.classList.remove("active");
+        }
+      });
       
       if (currentActiveRegion === regionId) {
         currentActiveRegion = null;
@@ -1078,7 +1327,7 @@ function initWagesSection() {
 
       // If UMK tab is visible, filter UMK by province click if province is in UMK list
       const activeTabBtn = document.querySelector(".wage-hub-tab-btn.active");
-      const activeTabId = activeTabBtn.getAttribute("data-tab");
+      const activeTabId = activeTabBtn ? activeTabBtn.getAttribute("data-tab") : "hub-ump";
       
       if (activeTabId === "hub-umk" && currentActiveRegion) {
         // Map region click to a representative province in that region for demonstration
@@ -1153,11 +1402,32 @@ function initWagesSection() {
       const targetId = btn.getAttribute("data-tab");
       document.getElementById(targetId).classList.add("active");
 
+      // Switch map depending on active tab
+      const mapIndonesia = document.getElementById("mapIndonesia");
+      const mapAsean = document.getElementById("mapAsean");
+      const mapCardTitle = document.getElementById("mapCardTitle");
+      const mapCardDesc = document.getElementById("mapCardDesc");
+
+      if (targetId === "hub-asean") {
+        if (mapIndonesia) mapIndonesia.style.display = "none";
+        if (mapAsean) mapAsean.style.display = "block";
+        if (mapCardTitle) mapCardTitle.innerText = "Peta Perbandingan Upah ASEAN";
+        if (mapCardDesc) mapCardDesc.innerText = "Pilih negara ASEAN untuk melihat detail perbandingan upah minimum.";
+      } else {
+        if (mapIndonesia) mapIndonesia.style.display = "block";
+        if (mapAsean) mapAsean.style.display = "none";
+        if (mapCardTitle) mapCardTitle.innerText = "Peta Kepatuhan Upah Indonesia";
+        if (mapCardDesc) mapCardDesc.innerText = "Pilih wilayah pulau untuk menampilkan data UMP regional dan kota.";
+      }
+
       // Load specific tab components
       if (targetId === "hub-umk") {
         renderUMKTable(null, umkSearchInput ? umkSearchInput.value : "", 1);
       } else if (targetId === "hub-asean") {
-        renderASEANChart();
+        renderASEANTable();
+        if (googleChartsLoaded) {
+          drawAseanMapChart();
+        }
       } else if (targetId === "hub-simulator") {
         initSalarySimulator();
       }
@@ -1168,6 +1438,48 @@ function initWagesSection() {
   const chartBtn = document.querySelector("#showWageChartBtn");
   if (chartBtn) {
     chartBtn.addEventListener("click", () => renderWageChartModal());
+  }
+
+  // Fullscreen Map Toggle
+  const mapExpandBtn = document.getElementById("mapExpandBtn");
+  const mapCard = document.querySelector(".map-card");
+  
+  const preventMapScroll = (e) => {
+    e.preventDefault();
+  };
+
+  if (mapExpandBtn && mapCard) {
+    mapExpandBtn.addEventListener("click", () => {
+      const isFullscreen = mapCard.classList.toggle("fullscreen");
+      
+      // Toggle body scroll locking
+      if (isFullscreen) {
+        document.body.style.overflow = "hidden";
+        document.body.classList.add("map-fullscreen-active");
+        mapCard.addEventListener("wheel", preventMapScroll, { passive: false });
+        mapCard.addEventListener("touchmove", preventMapScroll, { passive: false });
+      } else {
+        document.body.style.overflow = "";
+        document.body.classList.remove("map-fullscreen-active");
+        mapCard.removeEventListener("wheel", preventMapScroll);
+        mapCard.removeEventListener("touchmove", preventMapScroll);
+      }
+
+      // Toggle button icon
+      mapExpandBtn.innerHTML = isFullscreen 
+        ? `<i class="fas fa-compress"></i>` 
+        : `<i class="fas fa-expand"></i>`;
+      mapExpandBtn.title = isFullscreen ? "Perkecil Peta" : "Perbesar Peta";
+      
+      // If ASEAN map is active, we must redraw Google GeoChart to adjust to fullscreen size
+      const activeTabBtn = document.querySelector(".wage-hub-tab-btn.active");
+      const activeTabId = activeTabBtn ? activeTabBtn.getAttribute("data-tab") : "";
+      if (activeTabId === "hub-asean" && googleChartsLoaded) {
+        setTimeout(() => {
+          drawAseanMapChart();
+        }, 300);
+      }
+    });
   }
 
   // Initial renders
@@ -1245,36 +1557,98 @@ function renderWageChartModal() {
   const chartBody = document.querySelector("#chartModalBody");
   if (!chartBody) return;
 
-  const sorted = [...UMP_2024_DB].sort((a, b) => b.wage - a.wage);
-  const highest = sorted.slice(0, 5);
-  const lowest = sorted.slice(-5).reverse();
-  const chartData = [...highest, ...lowest];
+  const modalTitle = document.querySelector("#chartModal .modal-title");
+  const activeTabBtn = document.querySelector(".wage-hub-tab-btn.active");
+  const activeTabId = activeTabBtn ? activeTabBtn.getAttribute("data-tab") : "hub-ump";
 
-  const maxWage = 5200000;
-  
   let chartRows = "";
-  chartData.forEach(item => {
-    const percentage = (item.wage / maxWage) * 100;
-    const isTop = highest.includes(item);
-    const barColor = isTop ? "var(--primary)" : "var(--accent)";
+  let titleText = "";
+  let descText = "";
 
-    chartRows += `
-      <div style="margin-bottom:1rem; display:grid; grid-template-columns:120px 1fr 100px; align-items:center; gap:1rem;">
-        <span style="font-size:0.875rem; font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-dark);">${item.prov}</span>
-        <div style="height:1.25rem; background-color:var(--bg-main); border-radius:9999px; overflow:hidden; width:100%;">
-          <div style="width:0%; height:100%; background:${barColor}; border-radius:9999px; transition: width 1s ease-out;" class="chart-bar" data-width="${percentage}%"></div>
+  if (activeTabId === "hub-umk") {
+    if (modalTitle) modalTitle.innerText = "Visualisasi UMK";
+    titleText = "Grafik Perbandingan UMK Kabupaten/Kota 2024";
+    descText = `Menampilkan 5 kabupaten/kota dengan UMK tertinggi (<span style="color:var(--primary); font-weight:700;">Ungu</span>) dan 5 terendah (<span style="color:var(--accent); font-weight:700;">Biru Pastel</span>)`;
+
+    let allUMK = [];
+    Object.keys(UMK_2024_DB).forEach(prov => {
+      UMK_2024_DB[prov].forEach(city => {
+        allUMK.push({ prov: prov, city: city.city, wage: city.wage });
+      });
+    });
+    const sorted = allUMK.sort((a, b) => b.wage - a.wage);
+    const highest = sorted.slice(0, 5);
+    const lowest = sorted.slice(-5).reverse();
+    const chartData = [...highest, ...lowest];
+    const maxWage = 5500000;
+
+    chartData.forEach(item => {
+      const percentage = (item.wage / maxWage) * 100;
+      const isTop = highest.includes(item);
+      const barColor = isTop ? "var(--primary)" : "var(--accent)";
+
+      chartRows += `
+        <div style="margin-bottom:1rem; display:grid; grid-template-columns:140px 1fr 100px; align-items:center; gap:1rem;">
+          <span style="font-size:0.875rem; font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-dark);" title="${item.city} (${item.prov})">${item.city}</span>
+          <div style="height:1.25rem; background-color:var(--bg-main); border-radius:9999px; overflow:hidden; width:100%;">
+            <div style="width:0%; height:100%; background:${barColor}; border-radius:9999px; transition: width 1s ease-out;" class="chart-bar" data-width="${percentage}%"></div>
+          </div>
+          <span style="font-size:0.8125rem; font-weight:700; color:var(--text-medium); font-family:var(--font-title); text-align:right;">${formatRupiah(item.wage)}</span>
         </div>
-        <span style="font-size:0.8125rem; font-weight:700; color:var(--text-medium); font-family:var(--font-title); text-align:right;">${formatRupiah(item.wage)}</span>
-      </div>
-    `;
-  });
+      `;
+    });
+  } else if (activeTabId === "hub-asean") {
+    if (modalTitle) modalTitle.innerText = "Visualisasi Upah ASEAN";
+    titleText = "Grafik Perbandingan Upah Minimum ASEAN 2024";
+    descText = `Menampilkan perbandingan upah minimum rata-rata bulanan di negara ASEAN (konversi ke Rupiah). Indonesia disorot dengan warna <span style="color:var(--success); font-weight:700;">Hijau</span>`;
+
+    ASEAN_WAGES_DB.forEach(item => {
+      const barColor = item.highlight ? "var(--success)" : "var(--primary)";
+
+      chartRows += `
+        <div style="margin-bottom:1rem; display:grid; grid-template-columns:120px 1fr 150px; align-items:center; gap:1rem;">
+          <span style="font-size:0.875rem; font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-dark);">${item.country}</span>
+          <div style="height:1.25rem; background-color:var(--bg-main); border-radius:9999px; overflow:hidden; width:100%;">
+            <div style="width:0%; height:100%; background:${barColor}; border-radius:9999px; transition: width 1s ease-out;" class="chart-bar" data-width="${item.barWidth}%"></div>
+          </div>
+          <span style="font-size:0.8125rem; font-weight:700; color:var(--text-medium); font-family:var(--font-title); text-align:right;">${item.valStr}</span>
+        </div>
+      `;
+    });
+  } else {
+    if (modalTitle) modalTitle.innerText = "Visualisasi UMP";
+    titleText = "Grafik Perbandingan UMP Indonesia 2024";
+    descText = `Menampilkan 5 provinsi dengan UMP tertinggi (<span style="color:var(--primary); font-weight:700;">Ungu</span>) dan 5 terendah (<span style="color:var(--accent); font-weight:700;">Biru Pastel</span>)`;
+
+    const sorted = [...UMP_2024_DB].sort((a, b) => b.wage - a.wage);
+    const highest = sorted.slice(0, 5);
+    const lowest = sorted.slice(-5).reverse();
+    const chartData = [...highest, ...lowest];
+    const maxWage = 5200000;
+
+    chartData.forEach(item => {
+      const percentage = (item.wage / maxWage) * 100;
+      const isTop = highest.includes(item);
+      const barColor = isTop ? "var(--primary)" : "var(--accent)";
+
+      chartRows += `
+        <div style="margin-bottom:1rem; display:grid; grid-template-columns:120px 1fr 100px; align-items:center; gap:1rem;">
+          <span style="font-size:0.875rem; font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-dark);">${item.prov}</span>
+          <div style="height:1.25rem; background-color:var(--bg-main); border-radius:9999px; overflow:hidden; width:100%;">
+            <div style="width:0%; height:100%; background:${barColor}; border-radius:9999px; transition: width 1s ease-out;" class="chart-bar" data-width="${percentage}%"></div>
+          </div>
+          <span style="font-size:0.8125rem; font-weight:700; color:var(--text-medium); font-family:var(--font-title); text-align:right;">${formatRupiah(item.wage)}</span>
+        </div>
+      `;
+    });
+  }
 
   chartBody.innerHTML = `
     <h3 style="font-size:1.25rem; margin-bottom:0.5rem; font-family:var(--font-title); color:var(--text-dark);">
-      Grafik Perbandingan UMP Indonesia 2024
+      ${titleText}
     </h3>
     <p style="font-size:0.875rem; color:var(--text-light); margin-bottom:2rem;">
-      Menampilkan 5 provinsi dengan UMP tertinggi (<span style="color:var(--primary); font-weight:700;">Ungu</span>) dan 5 terendah (<span style="color:var(--accent); font-weight:700;">Biru Pastel</span>)
+      ${descText}
     </p>
     <div style="padding:1rem 0;">
       ${chartRows}

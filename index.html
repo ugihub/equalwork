@@ -12,7 +12,7 @@
   
   <!-- FontAwesome Icons & Local Dashboard Styling -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/styles.css?v=1.3.0">
 </head>
 <body>
   <!-- Loading Screen -->
@@ -443,14 +443,17 @@
       <div class="grid-2">
         <!-- Interactive Indonesia map -->
         <div class="map-card">
+          <button class="map-expand-btn" id="mapExpandBtn" title="Perbesar Peta">
+            <i class="fas fa-expand"></i>
+          </button>
           <div class="map-title-row">
-            <h3>Peta Kepatuhan Upah Indonesia</h3>
-            <p>Pilih wilayah pulau untuk menampilkan data UMP regional dan kota.</p>
+            <h3 id="mapCardTitle">Peta Kepatuhan Upah Indonesia</h3>
+            <p id="mapCardDesc">Pilih wilayah pulau untuk menampilkan data UMP regional dan kota.</p>
           </div>
           
           <div class="map-wrapper">
             <div id="mapTooltip" class="map-tooltip"></div>
-            <svg viewBox="0 0 700 235" class="map-indonesia" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 700 235" class="map-indonesia" id="mapIndonesia" xmlns="http://www.w3.org/2000/svg">
               <!-- Grid lines -->
               <g stroke="rgba(99,102,241,0.05)" stroke-width="0.5">
                 <line x1="50" y1="0" x2="50" y2="235" />
@@ -560,6 +563,9 @@
                 <circle class="marker-dot" r="4" fill="#EF4444" />
               </g>
             </svg>
+
+            <!-- Interactive ASEAN Map Chart Container -->
+            <div class="map-asean" id="mapAsean" style="display: none; width: 100%; height: 300px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border);"></div>
           </div>
 
           <!-- Map Legend -->
@@ -647,9 +653,28 @@
             <p style="font-size:0.875rem; color:var(--text-light); margin-bottom:1rem;">
               Perbandingan tingkat upah minimum bulanan rata-rata Indonesia terhadap negara tetangga di Asia Tenggara (ASEAN) tahun 2024 (konversi ke Rupiah).
             </p>
-            <div class="asean-comp-chart" id="aseanCompChart">
-              <!-- Loaded dynamically -->
+            <div class="table-controls">
+              <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="aseanSearch" placeholder="Cari negara ASEAN...">
+              </div>
             </div>
+
+            <div class="table-wrapper">
+              <table class="wage-table">
+                <thead>
+                  <tr>
+                    <th>Negara</th>
+                    <th>Upah Minimum (Bulanan)</th>
+                    <th>Nilai Lokal / Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody id="aseanTableBody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+            <div class="table-pagination" id="aseanPagination"></div>
           </div>
 
           <!-- TAB 4: Factory Salary Simulator -->
@@ -1202,7 +1227,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="assets/js/motion.js?v=1.0.0"></script>
   
+  <!-- Google Charts Loader for Map Chart -->
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+
   <!-- App logic integration -->
-  <script src="assets/js/app.js?v=1.2.0"></script>
+  <script src="assets/js/app.js?v=1.3.0"></script>
 </body>
 </html>
