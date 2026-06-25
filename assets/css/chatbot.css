@@ -388,14 +388,28 @@
   .chatbot-container {
     bottom: 0;
     right: 0;
+    left: 0;
     width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0;
-    border: none;
+    height: 50vh;
+    max-height: 50vh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    transform: translateY(100%);
+    transition: transform var(--transition-normal) var(--ease-out-expo), opacity var(--transition-normal);
+  }
+  .chatbot-container.active {
+    transform: translateY(0);
   }
   .chatbot-trigger {
     bottom: 1.5rem;
     right: 1.5rem;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  /* Hide trigger button on mobile when chat panel is open */
+  .chatbot-trigger.active {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8) translateY(20px);
   }
 }
